@@ -10,6 +10,8 @@ Kendi podcast ve müzik uygulamam. Telefonda **Podcast** adıyla görünür (pro
   - Biten bölüm **Bitti** olarak görünür. Bölümün %97'si dinlendiyse ya da sona 45 sn'den az kaldıysa bitmiş sayılır.
   - Satırı sağa kaydırarak bölümü elle Bitti/Bitmedi yapabilirsin.
   - Bölüm bitince sıradakine geçer.
+- **Substack / RSS abonelikleri:** Podcastler'de **+ → Substack / RSS ile abone ol**. Yayının adresini (ya da yalnızca adını) yazman yeter. Ücretli abonelikler için Substack'teki **özel RSS linkini** yapıştır. Bölümler internetten hemen çalar. İstersen telefona indirirsin: satırı sağa kaydırıp **İndir**'e bas ya da programın menüsünden **Yeni bölümleri indir**'i aç. İndirmeler uygulama kapalıyken de sürer. Akışlar uygulama açılınca (en çok saatte bir) ya da sayfayı aşağı çekince yenilenir.
+- **Arşiv + akış birleşir:** Dosyalardan oluşturduğun bir programa menüden **Substack / RSS bağla** dersen, akıştaki bölümler arşivdeki dosyalarla başlık ve süreye göre eşleşir. Aynı bölüm iki kez görünmez, dosyası olanlar indirilmiş sayılır.
 - **Klasörler:** Podcastler'de **+ → Yeni klasör** ile adlandırdığın bir klasör aç (ör. "Yolda dinlenecekler"). Bir bölüme basılı tutup **Klasöre ekle**'yi seç ya da bölümü sola kaydırıp **Klasöre**'ye bas. Klasör kendi sırasıyla çalar. Sırayı **Düzenle** ile sürükleyerek değiştirebilirsin.
 - **Müzik:** Podcastlerden ayrı bir bölüm. **+ → Albüm klasörü seç** ile bir klasördeki bütün şarkılar tek seferde bir albüm olur. Albüm adı dosyanın içindeki bilgiden alınır, yoksa klasörün adı kullanılır. **Albümler** görünümünde kapaklarıyla listelenir. Albüme dokununca sayfası açılır, oradan hepsini çalabilir ya da karışık çalabilirsin. **Şarkılar** görünümünde bütün şarkılar bir arada durur.
 - **Kopyalar eklenmez:** Aynı dosya (aynı ad ve boyut) ya da aynı bölüm/şarkı (aynı başlık ve süre) ikinci kez eklenmez. Ekleme bitince kaç tanesinin atlandığı söylenir.
@@ -68,6 +70,10 @@ Sonra Xcode'da **▶**. Bu kadar.
 - [ ] Bir klasör aç, farklı programlardan bölüm ekle, klasörden çal. Bölüm bitince klasördeki sıradaki çalmalı.
 - [ ] Müzik'e bir albüm klasörü ekle. **Albümler**'de tek kart olarak görünmeli.
 - [ ] Müzik çalarken AirPods'a üç kez dokun. Önceki şarkıya geçmeli (şarkının başına dönmemeli).
+- [ ] Bir Substack yayınına abone ol (ör. yayının adı). Bölümler tarihleriyle gelmeli, dokununca internetten çalmalı.
+- [ ] Ücretli bir abonelik için özel RSS linkini yapıştır. Ücretli bölümler de gelmeli.
+- [ ] Bir bölümü sağa kaydırıp **İndir**'e bas. Halka dolmalı, bulut simgesi kaybolmalı. Uçak modunda da çalmalı.
+- [ ] Arşiv programına aynı yayının akışını bağla. Bölümler iki kez görünmemeli.
 - [ ] Uyku zamanlayıcısını 5 dk'ya kur, ekranı kilitle. Ses yavaşça kısılıp durmalı. Tekrar oynatınca kaldığı yerden (birkaç sn geri) devam etmeli.
 - [ ] "Bölüm bitince" seç. Bölüm bitince sıradakine geçmeden durmalı.
 - [ ] Ana Sayfa boşken içerik ekranın iki yanına kadar uzanmalı, yanlarda siyah şerit olmamalı.
@@ -97,7 +103,7 @@ swift test --package-path Paketler/DinleCekirdek
 ## Yol haritası
 
 1. ~~İskelet: arka planda çalma, kaldığın yerden devam, dosya ekleme, tasarım~~
-2. ~~Bölüm klasörleri, müzik albümleri, kopya önleme, AirPods'la şarkı değiştirme, uyku zamanlayıcısı~~ **← şu an**
-3. RSS / Substack akışları: link yapıştırarak abone ol, bölümleri indir, dosya + akış birleştirme
-4. AirPods: takınca devam, baş hareketleri, uyku zamanlayıcısı ve uyku algılama
-5. Siri ile devam, Substack girişiyle abonelikleri otomatik çekme, ses iyileştirme, yedekleme
+2. ~~Bölüm klasörleri, müzik albümleri, kopya önleme, AirPods'la şarkı değiştirme, uyku zamanlayıcısı~~
+3. ~~Substack / RSS abonelikleri, indirme, arşivle birleştirme~~ **← şu an**
+4. AirPods: takınca devam, uyku algılama
+5. Ses iyileştirme (konuşmayı netleştirme, sessizlik kısaltma) ve yedekleme

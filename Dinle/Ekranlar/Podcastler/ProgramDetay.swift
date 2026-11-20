@@ -7,6 +7,7 @@ struct ProgramDetay: View {
     @Bindable var program: Program
     @Environment(\.modelContext) private var baglam
     @Environment(Oynatici.self) private var oynatici
+    @Environment(Indirici.self) private var indirici
     @Environment(\.dismiss) private var kapat
 
     @Query(sort: [SortDescriptor(\Klasor.olusturma)]) private var klasorler: [Klasor]
@@ -19,6 +20,7 @@ struct ProgramDetay: View {
     /// "Yeni klasör…" seçilince klasöre eklenecek bölüm.
     @State private var klasoreEklenecek: Bolum?
     @State private var yeniKlasorAdi = ""
+    @State private var akisBagla = false
 
     private var bolumler: [Bolum] {
         let sira = program.siraliBolumler()
@@ -31,7 +33,7 @@ struct ProgramDetay: View {
                 .listRowSeparator(.hidden)
                 .duzSatir()
 
-            if program.bolumler.isEmpty {
+            if program.gorunurBolumler.isEmpty {
                 BosDurum(simge: "folder.badge.plus",
                          baslik: "Bölüm ekle",
                          aciklama: "Sağ üstteki menüden arşivindeki dosyaları ya da bütün bir klasörü seç. Yayın tarihini dosyanın içinden ya da adından bulurum.")
@@ -50,6 +52,12 @@ struct ProgramDetay: View {
                         Label(b.bitti ? "Bitmedi" : "Bitti", systemImage: b.bitti ? "arrow.uturn.backward" : "checkmark")
                     }
                     .tint(Tema.vurgu)
+                    if b.akistan && !b.indirildi && indirici.oran(b) == nil {
+                        Button { indirici.indir(b) } label: {
+                            Label("İndir", systemImage: "arrow.down.circle")
+                        }
+                        .tint(.blue)
+                    }
                 }
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
@@ -72,6 +80,21 @@ struct ProgramDetay: View {
                     Button { oynatici.cal(b, bastan: true) } label: {
                         Label("Baştan çal", systemImage: "backward.end")
                     }
+                    if b.akistan {
+                        if indirici.oran(b) != nil {
+                            Button { indirici.iptal(b) } label: {
+                                Label("İndirmeyi durdur", systemImage: "xmark.circle")
+                            }
+                        } else if b.indirildi {
+                            Button { indirici.indirileniSil(b) } label: {
+                                Label("İndirileni sil (internetten çalar)", systemImage: "icloud.slash")
+                            }
+                        } else {
+                            Button { indirici.indir(b) } label: {
+                                Label("İndir", systemImage: "arrow.down.circle")
+                            }
+                        }
+                    }
                     Button { bittiDegistir(b) } label: {
                         Label(b.bitti ? "Bitmedi olarak işaretle" : "Bitti olarak işaretle",
                               systemImage: b.bitti ? "arrow.uturn.backward" : "checkmark")
@@ -82,8 +105,16 @@ struct ProgramDetay: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Tema.zemin)
+        .refreshable {
+            if program.akisAdresi != nil {
+                _ = try? await AkisYenileyici.yenile(program, baglam: baglam, indirici: indirici)
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { menu }
+        .sheet(isPresented: $akisBagla) {
+            AkisEkleEkrani(program: program)
+        }
         .fileImporter(isPresented: $iceAktarAcik,
                       allowedContentTypes: klasorSec ? [.folder] : [.audio],
                       allowsMultipleSelection: !klasorSec) { sonuc in
@@ -136,10 +167,14 @@ struct ProgramDetay: View {
     }
 
     private var ozet: String {
-        let toplam = program.bolumler.count
+        let toplam = program.gorunurBolumler.count
         let biten = program.bitenSayisi
         let yon = program.eskidenYeniye ? "Eskiden yeniye" : "Yeniden eskiye"
-        return "\(toplam) bölüm · \(biten) bitti\n\(yon)"
+        var satirlar = ["\(toplam) bölüm · \(biten) bitti", yon]
+        if program.akisAdresi != nil {
+            satirlar.append(program.otomatikIndir ? "Abone · yeni bölümler iner" : "Abone · aşağı çekince yenilenir")
+        }
+        return satirlar.joined(separator: "\n")
     }
 
     private var menu: some ToolbarContent {
@@ -157,6 +192,23 @@ struct ProgramDetay: View {
                         iceAktarAcik = true
                     } label: {
                         Label("Klasör seç", systemImage: "folder.badge.plus")
+                    }
+                }
+                Section("Abonelik") {
+                    if program.akisAdresi == nil {
+                        Button { akisBagla = true } label: {
+                            Label("Substack / RSS bağla", systemImage: "dot.radiowaves.up.forward")
+                        }
+                    } else {
+                        Toggle("Yeni bölümleri indir", isOn: $program.otomatikIndir)
+                        Button {
+                            Task { _ = try? await AkisYenileyici.yenile(program, baglam: baglam, indirici: indirici) }
+                        } label: {
+                            Label("Şimdi yenile", systemImage: "arrow.clockwise")
+                        }
+                        Button { akisBagla = true } label: {
+                            Label("Akış linkini değiştir", systemImage: "link")
+                        }
                     }
                 }
                 Section("Sıralama") {
@@ -207,9 +259,18 @@ struct ProgramDetay: View {
             var mevcut = program.bolumler
             for dosya in sonuc.eklenenler {
                 // Farklı adla kaydedilmiş aynı bölüm: başlık + süre aynıysa ekleme.
-                if mevcut.contains(where: { KopyaDenetimi.ayniKayit(baslik: $0.baslik, sure: $0.sure, baslik: dosya.gorunenBaslik, sure: dosya.sure) }) {
-                    MedyaDeposu.sil(dosya.dosyaAdi)
-                    atlanan += 1
+                if let es = mevcut.first(where: { KopyaDenetimi.ayniKayit(baslik: $0.baslik, sure: $0.sure, baslik: dosya.gorunenBaslik, sure: dosya.sure) }) {
+                    if es.akistan && !es.indirildi {
+                        // Akıştaki bölümün dosyası arşivden geldi: indirilmiş say.
+                        es.dosyaAdi = dosya.dosyaAdi
+                        es.kaynakAdi = dosya.kaynakAdi
+                        es.kaynakBoyutu = dosya.kaynakBoyutu
+                        es.gizli = false
+                        eklenen += 1
+                    } else {
+                        MedyaDeposu.sil(dosya.dosyaAdi)
+                        atlanan += 1
+                    }
                     continue
                 }
                 let b = Bolum(baslik: dosya.gorunenBaslik)

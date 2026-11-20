@@ -28,7 +28,10 @@ struct BolumSatiri: View {
                     .foregroundStyle(bolum.bitti ? .secondary : .primary)
                     .lineLimit(3)
                     .multilineTextAlignment(.leading)
-                durumSatiri
+                HStack(spacing: 8) {
+                    durumSatiri
+                    IndirmeGostergesi(bolum: bolum)
+                }
             }
             Spacer(minLength: 0)
             OynatDugmesi(caliyor: oynatici.caliyorMu(bolum))
