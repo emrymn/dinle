@@ -52,3 +52,18 @@ public enum Bicim {
         return String(format: "%.1f GB", mb / 1024).replacingOccurrences(of: ".", with: ",")
     }
 }
+
+/// Toplu indirmeden önce gösterilen boyut tahmini.
+public enum IndirmeTahmini {
+
+    /// Akış dosya boyutunu bildiriyorsa o; bildirmiyorsa süreden tahmin (≈128 kbit/sn, podcastlerin yaygın kalitesi).
+    public static func boyut(akisBoyutu: Int64, sure: Double) -> Int64 {
+        if akisBoyutu > 0 { return akisBoyutu }
+        guard sure.isFinite, sure > 0 else { return 0 }
+        return Int64(sure * 16_000)
+    }
+
+    public static func toplam(_ bolumler: [(akisBoyutu: Int64, sure: Double)]) -> Int64 {
+        bolumler.reduce(0) { $0 + boyut(akisBoyutu: $1.akisBoyutu, sure: $1.sure) }
+    }
+}
