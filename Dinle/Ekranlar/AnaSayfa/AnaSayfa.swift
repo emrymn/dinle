@@ -51,6 +51,9 @@ struct AnaSayfa: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
                 .padding(.bottom, 24)
+                // İçerik kısa olsa da (ör. boş ekran) bütün genişliği kaplasın;
+                // yoksa kaydırma alanı daralıp iki yanda siyah şerit kalıyordu.
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Tema.zemin)
             .navigationTitle("Podcast")

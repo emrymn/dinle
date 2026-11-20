@@ -1,5 +1,6 @@
 import AVFoundation
 import UIKit
+import DinleCekirdek
 
 /// Files'tan seçilen bir ses dosyasının, uygulamaya kopyalandıktan sonraki bilgileri.
 struct DosyaBilgisi: Sendable {
@@ -13,6 +14,11 @@ struct DosyaBilgisi: Sendable {
     var dosyaTarihi: Date?
     var sure: Double = 0
     var kapak: Data?
+    /// Dosyanın asıl adı (uzantılı) ve boyutu: kopya denetimi için.
+    var kaynakAdi: String = ""
+    var kaynakBoyutu: Int64 = 0
+    /// Klasör seçildiyse dosyanın içinde durduğu klasörün adı (albüm adı olarak kullanılır).
+    var klasorAdi: String?
 
     /// Başlık yoksa dosya adı.
     var gorunenBaslik: String {
@@ -26,12 +32,33 @@ enum DosyaIceAktarici {
 
     static let sesUzantilari: Set<String> = ["mp3", "m4a", "m4b", "aac", "wav", "aif", "aiff", "caf", "flac", "mp4", "alac"]
 
-    static func iceAktar(_ urller: [URL]) async -> [DosyaBilgisi] {
-        var sonuc: [DosyaBilgisi] = []
+    struct Sonuc: Sendable {
+        var eklenenler: [DosyaBilgisi] = []
+        /// Daha önce eklenmiş ya da seçimde iki kez geçen dosyalar.
+        var atlanan = 0
+    }
+
+    /// `bilinenler`: uygulamada zaten olan dosyaların kimlikleri; bunlar kopyalanmadan atlanır.
+    static func iceAktar(_ urller: [URL], bilinenler: Set<KopyaDenetimi.DosyaKimligi>) async -> Sonuc {
+        var sonuc = Sonuc()
+        var gorulenler = bilinenler
         for url in urller {
             let erisim = url.startAccessingSecurityScopedResource()
+            let klasorMu = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
             for dosya in sesDosyalari(url) {
-                if let bilgi = await tekDosya(dosya) { sonuc.append(bilgi) }
+                let boyut = Int64((try? dosya.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
+                let kimlik = KopyaDenetimi.DosyaKimligi(ad: dosya.lastPathComponent, boyut: boyut)
+                if gorulenler.contains(kimlik) {
+                    sonuc.atlanan += 1
+                    continue
+                }
+                gorulenler.insert(kimlik)
+                if var bilgi = await tekDosya(dosya) {
+                    bilgi.kaynakAdi = dosya.lastPathComponent
+                    bilgi.kaynakBoyutu = boyut
+                    if klasorMu { bilgi.klasorAdi = dosya.deletingLastPathComponent().lastPathComponent }
+                    sonuc.eklenenler.append(bilgi)
+                }
             }
             if erisim { url.stopAccessingSecurityScopedResource() }
         }

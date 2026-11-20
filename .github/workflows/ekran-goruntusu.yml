@@ -1,0 +1,90 @@
+# Uygulamayı iPhone simülatöründe açıp her ekranın görüntüsünü alır (gece + gündüz).
+# Görüntüler işin "ekranlar" çıktısında (artifact) durur; tasarımı Mac olmadan denetlemek için.
+name: Ekran görüntüleri
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ekran-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ekran:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: En yeni Xcode'u seç
+        run: |
+          ls -d /Applications/Xcode*.app
+          XC=$(ls -d /Applications/Xcode_*.app | grep -v -i beta | sort -V | tail -1)
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Simülatör için derle
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Dinle.xcodeproj -scheme Dinle -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+          test -d build/Build/Products/Debug-iphonesimulator/Dinle.app
+
+      - name: Simülatörü aç
+        run: |
+          # En büyük ekranlı iPhone (Pro Max), en yeni iOS
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys,re
+          d=json.load(sys.stdin)["devices"]
+          aday=[]
+          for rt,devs in d.items():
+              m=re.search(r"iOS-(\d+)-(\d+)",rt)
+              if not m: continue
+              for x in devs:
+                  if "iPhone" in x["name"]:
+                      aday.append(((int(m.group(1)),int(m.group(2))),"Pro Max" in x["name"],x["name"],x["udid"]))
+          aday.sort()
+          print(aday[-1][3]); print(aday[-1], file=sys.stderr)')
+          echo "UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Dinle.app
+          # Saat/pil çubuğu sabit görünsün
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 || true
+
+      - name: Ekran görüntüleri
+        run: |
+          mkdir -p ekranlar
+          PAKET=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" build/Build/Products/Debug-iphonesimulator/Dinle.app/Info.plist)
+          /usr/libexec/PlistBuddy -c "Print" build/Build/Products/Debug-iphonesimulator/Dinle.app/Info.plist > ekranlar/Info.plist.txt
+          cek() {
+            ad="$1"; shift
+            xcrun simctl terminate "$UDID" "$PAKET" 2>/dev/null || true
+            xcrun simctl launch "$UDID" "$PAKET" "$@"
+            sleep 6
+            xcrun simctl io "$UDID" screenshot "ekranlar/$ad.png"
+          }
+          for gorunum in dark light; do
+            xcrun simctl ui "$UDID" appearance "$gorunum"
+            cek "$gorunum-1-bos"
+            cek "$gorunum-2-anasayfa" -demo
+            cek "$gorunum-3-podcastler" -demo -sekme podcastler
+            cek "$gorunum-4-program" -demo -sekme podcastler -programAc
+            cek "$gorunum-5-klasor" -demo -sekme podcastler -klasorAc
+            cek "$gorunum-6-albumler" -demo -sekme muzik
+            cek "$gorunum-7-album" -demo -sekme muzik -albumAc
+            cek "$gorunum-8-sarkilar" -demo -sekme muzik -muzik sarkilar
+            cek "$gorunum-9-ayarlar" -demo -sekme ayarlar
+          done
+          ls -la ekranlar
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ekranlar
+          path: ekranlar

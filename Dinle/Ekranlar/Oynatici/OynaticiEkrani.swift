@@ -140,6 +140,8 @@ struct OynaticiEkrani: View {
                 .accessibilityLabel("Tekrar")
             }
             Spacer()
+            UykuMenusu()
+            Spacer()
             YonlendirmeSecici()
                 .frame(width: 32, height: 32)
                 .accessibilityLabel("Ses çıkışı")
@@ -160,4 +162,56 @@ struct YonlendirmeSecici: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
+}
+
+/// Uyku zamanlayıcısı düğmesi: açıkken kalan süreyi gösterir.
+struct UykuMenusu: View {
+    @Environment(Oynatici.self) private var oynatici
+
+    var body: some View {
+        Menu {
+            if oynatici.uyku != nil {
+                Button(role: .destructive) { oynatici.uykuIptal() } label: {
+                    Label("Zamanlayıcıyı kapat", systemImage: "xmark")
+                }
+            }
+            Button { oynatici.uykuParcaSonunda() } label: {
+                Label(oynatici.tur == .muzik ? "Şarkı bitince" : "Bölüm bitince", systemImage: "text.line.last.and.arrowtriangle.forward")
+            }
+            ForEach(Oynatici.uykuSecenekleri.reversed(), id: \.self) { dk in
+                Button("\(dk) dakika") { oynatici.uykuKur(dakika: dk) }
+            }
+        } label: {
+            UykuEtiketi()
+        }
+        .accessibilityLabel("Uyku zamanlayıcısı")
+    }
+}
+
+struct UykuEtiketi: View {
+    @Environment(Oynatici.self) private var oynatici
+    var kucuk = false
+
+    var body: some View {
+        switch oynatici.uyku {
+        case .none:
+            Image(systemName: "moon.zzz")
+                .foregroundStyle(.secondary)
+        case .parcaSonu:
+            HStack(spacing: 4) {
+                Image(systemName: "moon.zzz.fill")
+                if !kucuk { Text("Sonunda").font(.footnote.weight(.semibold)) }
+            }
+            .foregroundStyle(Tema.vurgu)
+        case .sure:
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                HStack(spacing: 4) {
+                    Image(systemName: "moon.zzz.fill")
+                    Text(Bicim.zaman(oynatici.uykuKalan ?? 0))
+                        .font((kucuk ? Font.caption2 : Font.footnote).weight(.semibold).monospacedDigit())
+                }
+                .foregroundStyle(Tema.vurgu)
+            }
+        }
+    }
 }

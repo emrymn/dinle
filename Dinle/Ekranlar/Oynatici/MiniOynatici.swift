@@ -20,6 +20,9 @@ struct MiniOynatici: View {
                             .lineLimit(1)
                     }
                     Spacer(minLength: 8)
+                    if oynatici.uyku != nil {
+                        UykuEtiketi(kucuk: true)
+                    }
                     Button {
                         oynatici.oynatDuraklat()
                     } label: {
