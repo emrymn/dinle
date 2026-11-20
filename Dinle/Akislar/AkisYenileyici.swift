@@ -104,9 +104,22 @@ enum AkisYenileyici {
                 yeniler.append(b)
             }
             b.akisKimligi = ab.kimlik
+            let arsivDosyasi = !b.kaynakAdi.isEmpty
+            if AkisEslestirici.sesYenilendi(eskiAdres: b.uzakAdres, yeniAdres: ab.sesAdresi,
+                                            eskiSure: b.sure, yeniSure: ab.sure, arsivDosyasi: arsivDosyasi) {
+                // Önizleme yerine tam bölüm geldi (özel link): eski indirme ve önizlemedeki ilerleme geçersiz.
+                if b.dosyaAdi != nil {
+                    MedyaDeposu.sil(b.dosyaAdi)
+                    b.dosyaAdi = nil
+                }
+                b.konum = 0
+                b.bitti = false
+                b.sure = 0
+            }
             b.uzakAdres = ab.sesAdresi
             if let t = ab.yayinTarihi { b.yayinTarihi = t }
-            if b.sure <= 0 { b.sure = ab.sure }
+            // Akıştaki süre esas; yalnız arşiv dosyasında dosyanın kendi süresi korunur.
+            if ab.sure > 0 && (!arsivDosyasi || b.sure <= 0) { b.sure = ab.sure }
             if let a = ab.aciklama { b.aciklama = a }
         }
         if program.yazar == nil { program.yazar = akis.yazar }

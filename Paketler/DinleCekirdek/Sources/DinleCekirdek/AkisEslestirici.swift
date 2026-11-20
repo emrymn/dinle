@@ -60,3 +60,17 @@ public enum AkisEslestirici {
         return sonuc
     }
 }
+
+extension AkisEslestirici {
+
+    /// Önizleme yerine tam bölüm mü geldi (herkese açık akış → özel link)?
+    /// Öyleyse eski indirme ve önizlemedeki ilerleme geçersizdir.
+    /// Ölçüt süre: bölüm en az 1 dk uzamış olmalı. Yalnız adresin değişmesi yetmez
+    /// (bazı sunucular adresleri yeniler; o zaman ilerleme silinmemeli).
+    /// Kullanıcının arşivinden eklenmiş dosyalara dokunulmaz.
+    public static func sesYenilendi(eskiAdres: String?, yeniAdres: String,
+                                    eskiSure: Double, yeniSure: Double, arsivDosyasi: Bool) -> Bool {
+        guard !arsivDosyasi, eskiAdres?.isEmpty == false else { return false }
+        return eskiSure > 0 && yeniSure > eskiSure + 60
+    }
+}
