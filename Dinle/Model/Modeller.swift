@@ -73,6 +73,8 @@ final class Bolum {
     var akisKimligi: String = ""
     /// Akıştan gelen bölüm silindiğinde: yenilemede geri gelmesin diye gizlenir.
     var gizli: Bool = false
+    /// Akışın bildirdiği dosya boyutu (bayt); toplu indirmede tahmin için.
+    var akisBoyutu: Int64 = 0
 
     /// Bölüm silinince klasörlerdeki yeri de silinir.
     @Relationship(deleteRule: .cascade, inverse: \KlasorOgesi.bolum)

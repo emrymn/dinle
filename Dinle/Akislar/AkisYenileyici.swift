@@ -117,6 +117,7 @@ enum AkisYenileyici {
                 b.sure = 0
             }
             b.uzakAdres = ab.sesAdresi
+            if ab.boyut > 0 { b.akisBoyutu = ab.boyut }
             if let t = ab.yayinTarihi { b.yayinTarihi = t }
             // Akıştaki süre esas; yalnız arşiv dosyasında dosyanın kendi süresi korunur.
             if ab.sure > 0 && (!arsivDosyasi || b.sure <= 0) { b.sure = ab.sure }

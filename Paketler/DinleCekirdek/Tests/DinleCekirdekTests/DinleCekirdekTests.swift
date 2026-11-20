@@ -150,3 +150,13 @@ final class KopyaDenetimiTests: XCTestCase {
         XCTAssertTrue(KopyaDenetimi.ayniKayit(baslik: "Işık", sure: 10, baslik: "ışık", sure: 10))
     }
 }
+
+final class IndirmeTahminiTests: XCTestCase {
+    func testBoyut() {
+        XCTAssertEqual(IndirmeTahmini.boyut(akisBoyutu: 50_000_000, sure: 3600), 50_000_000)
+        XCTAssertEqual(IndirmeTahmini.boyut(akisBoyutu: 0, sure: 3600), 57_600_000)
+        XCTAssertEqual(IndirmeTahmini.boyut(akisBoyutu: 0, sure: 0), 0)
+        XCTAssertEqual(IndirmeTahmini.toplam([(50_000_000, 0), (0, 3600), (0, 0)]), 107_600_000)
+        XCTAssertEqual(Bicim.boyut(IndirmeTahmini.toplam([(akisBoyutu: 4_509_715_661, sure: 0)])), "4,2 GB")
+    }
+}

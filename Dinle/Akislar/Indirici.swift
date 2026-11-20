@@ -21,6 +21,8 @@ final class Indirici {
         let ayar = URLSessionConfiguration.background(withIdentifier: kimlik)
         ayar.sessionSendsLaunchEvents = true
         ayar.isDiscretionary = false
+        // Toplu indirmede sunucuyu boğmasın; geri kalanlar sırada bekler.
+        ayar.httpMaximumConnectionsPerHost = 3
         temsilci.sahip = self
         oturum = URLSession(configuration: ayar, delegate: temsilci, delegateQueue: nil)
 
@@ -48,11 +50,34 @@ final class Indirici {
     }
 
     func iptal(_ b: Bolum) {
-        let k = b.kimlik.uuidString
+        iptal([b])
+    }
+
+    /// Toplu indirme: zaten inen ya da indirilmiş olanları atlar.
+    func indir(_ liste: [Bolum]) {
+        for b in liste { indir(b) }
+    }
+
+    func iptal(_ liste: [Bolum]) {
+        let kimlikler = Set(liste.map(\.kimlik.uuidString))
         oturum.getAllTasks { gorevler in
-            for g in gorevler where g.taskDescription?.hasPrefix(k) == true { g.cancel() }
+            for g in gorevler {
+                if let k = g.taskDescription?.split(separator: "|").first, kimlikler.contains(String(k)) { g.cancel() }
+            }
         }
-        ilerleme[b.kimlik] = nil
+        for b in liste { ilerleme[b.kimlik] = nil }
+    }
+
+    /// Listedeki bölümlerden kaçı şu an iniyor.
+    func iniyorSayisi(_ liste: [Bolum]) -> Int {
+        liste.filter { ilerleme[$0.kimlik] != nil }.count
+    }
+
+    /// Telefonda kalan boş yer (bayt); bilinmiyorsa nil.
+    static var bosYer: Int64? {
+        let url = URL(fileURLWithPath: NSHomeDirectory())
+        return (try? url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]))?
+            .volumeAvailableCapacityForImportantUsage
     }
 
     /// İndirilen dosyayı siler; bölüm internetten çalınmaya devam eder.

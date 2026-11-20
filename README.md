@@ -11,6 +11,7 @@ Kendi podcast ve müzik uygulamam. Telefonda **Podcast** adıyla görünür (pro
   - Satırı sağa kaydırarak bölümü elle Bitti/Bitmedi yapabilirsin.
   - Bölüm bitince sıradakine geçer.
 - **Substack / RSS abonelikleri:** Podcastler'de **+ → Substack / RSS ile abone ol**. Yayının adresini (ya da yalnızca adını) yazman yeter. Ücretli abonelikler için Substack'teki **özel RSS linkini** yapıştır. Bölümler internetten hemen çalar. İstersen telefona indirirsin: satırı sağa kaydırıp **İndir**'e bas ya da programın menüsünden **Yeni bölümleri indir**'i aç. İndirmeler uygulama kapalıyken de sürer. Akışlar uygulama açılınca (en çok saatte bir) ya da sayfayı aşağı çekince yenilenir.
+- **Hepsini indir:** Programın **⋯** menüsünde **Bitmemişleri indir** ya da **Hepsini indir** seçenekleri var. Önce toplam boyutu ve telefondaki boş yeri gösterir. Bölümler sırayla iner, uygulama kapalıyken de sürer. **İndirmeleri durdur** ile durdurabilirsin.
 - **Ücretli Substack aboneliği (tam bölümler):** Herkese açık akışta ücretli bölümlerin yalnızca önizlemesi olur. Tam bölümler için programın **⋯ → Özel linkle değiştir**'e bas ve Substack'teki özel RSS linkini yapıştır. Önizlemeler tam bölümlerle değişir.
 - **Arşiv + akış birleşir:** Dosyalardan oluşturduğun bir programa menüden **Substack / RSS bağla** dersen, akıştaki bölümler arşivdeki dosyalarla başlık ve süreye göre eşleşir. Aynı bölüm iki kez görünmez, dosyası olanlar indirilmiş sayılır.
 - **Klasörler:** Podcastler'de **+ → Yeni klasör** ile adlandırdığın bir klasör aç (ör. "Yolda dinlenecekler"). Bir bölüme basılı tutup **Klasöre ekle**'yi seç ya da bölümü sola kaydırıp **Klasöre**'ye bas. Klasör kendi sırasıyla çalar. Sırayı **Düzenle** ile sürükleyerek değiştirebilirsin.
@@ -91,6 +92,7 @@ Sonra Xcode'da **▶**. Bu kadar.
 - [ ] Ücretli bir abonelik için özel RSS linkini yapıştır. Ücretli bölümler de gelmeli.
 - [ ] Bir bölümü sağa kaydırıp **İndir**'e bas. Halka dolmalı, bulut simgesi kaybolmalı. Uçak modunda da çalmalı.
 - [ ] Arşiv programına aynı yayının akışını bağla. Bölümler iki kez görünmemeli.
+- [ ] Abone olunan bir programda **⋯ → Bitmemişleri indir**. Onay sorusunda boyut görünmeli. Başlıkta "N bölüm iniyor" yazmalı. Uygulamayı kapatıp açınca indirme sürmeli.
 - [ ] Uyku zamanlayıcısını 5 dk'ya kur, ekranı kilitle. Ses yavaşça kısılıp durmalı. Tekrar oynatınca kaldığı yerden (birkaç sn geri) devam etmeli.
 - [ ] "Bölüm bitince" seç. Bölüm bitince sıradakine geçmeden durmalı.
 - [ ] Ana Sayfa boşken içerik ekranın iki yanına kadar uzanmalı, yanlarda siyah şerit olmamalı.

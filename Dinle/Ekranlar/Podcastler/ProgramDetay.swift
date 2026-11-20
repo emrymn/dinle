@@ -21,6 +21,27 @@ struct ProgramDetay: View {
     @State private var klasoreEklenecek: Bolum?
     @State private var yeniKlasorAdi = ""
     @State private var akisBagla = false
+    /// Onay bekleyen toplu indirme.
+    @State private var topluIndirme: TopluIndirme?
+
+    struct TopluIndirme: Identifiable {
+        let id = UUID()
+        let bolumler: [Bolum]
+        let boyut: Int64
+    }
+
+    /// Akıştan gelen, henüz inmemiş ve inmeyen bölümler.
+    private func indirilebilir(yalnizBitmemis: Bool) -> [Bolum] {
+        program.siraliBolumler().filter {
+            $0.akistan && !$0.indirildi && indirici.oran($0) == nil && (!yalnizBitmemis || !$0.bitti)
+        }
+    }
+
+    private func topluIndirmeHazirla(yalnizBitmemis: Bool) {
+        let liste = indirilebilir(yalnizBitmemis: yalnizBitmemis)
+        let boyut = IndirmeTahmini.toplam(liste.map { ($0.akisBoyutu, $0.sure) })
+        topluIndirme = TopluIndirme(bolumler: liste, boyut: boyut)
+    }
 
     private var bolumler: [Bolum] {
         let sira = program.siraliBolumler()
@@ -115,6 +136,13 @@ struct ProgramDetay: View {
         .sheet(isPresented: $akisBagla) {
             AkisEkleEkrani(program: program)
         }
+        .confirmationDialog(topluIndirmeBasligi, isPresented: Binding(get: { topluIndirme != nil }, set: { if !$0 { topluIndirme = nil } }),
+                            titleVisibility: .visible, presenting: topluIndirme) { t in
+            Button("İndir") { indirici.indir(t.bolumler) }
+            Button("Vazgeç", role: .cancel) {}
+        } message: { t in
+            Text(topluIndirmeMesaji(t))
+        }
         .fileImporter(isPresented: $iceAktarAcik,
                       allowedContentTypes: klasorSec ? [.folder] : [.audio],
                       allowsMultipleSelection: !klasorSec) { sonuc in
@@ -171,6 +199,8 @@ struct ProgramDetay: View {
         let biten = program.bitenSayisi
         let yon = program.eskidenYeniye ? "Eskiden yeniye" : "Yeniden eskiye"
         var satirlar = ["\(toplam) bölüm · \(biten) bitti", yon]
+        let inen = indirici.iniyorSayisi(program.gorunurBolumler)
+        if inen > 0 { satirlar.insert("\(inen) bölüm iniyor", at: 1) }
         if program.akisAdresi != nil {
             satirlar.append(program.otomatikIndir ? "Abone · yeni bölümler iner" : "Abone · aşağı çekince yenilenir")
         }
@@ -200,6 +230,23 @@ struct ProgramDetay: View {
                             Label("Substack / RSS bağla", systemImage: "dot.radiowaves.up.forward")
                         }
                     } else {
+                        let bitmemis = indirilebilir(yalnizBitmemis: true).count
+                        let hepsi = indirilebilir(yalnizBitmemis: false).count
+                        if bitmemis > 0 {
+                            Button { topluIndirmeHazirla(yalnizBitmemis: true) } label: {
+                                Label("Bitmemişleri indir (\(bitmemis))", systemImage: "arrow.down.circle")
+                            }
+                        }
+                        if hepsi > bitmemis {
+                            Button { topluIndirmeHazirla(yalnizBitmemis: false) } label: {
+                                Label("Hepsini indir (\(hepsi))", systemImage: "arrow.down.circle.fill")
+                            }
+                        }
+                        if indirici.iniyorSayisi(program.gorunurBolumler) > 0 {
+                            Button(role: .destructive) { indirici.iptal(program.gorunurBolumler) } label: {
+                                Label("İndirmeleri durdur", systemImage: "stop.circle")
+                            }
+                        }
                         Toggle("Yeni bölümleri indir", isOn: $program.otomatikIndir)
                         Button {
                             Task { _ = try? await AkisYenileyici.yenile(program, baglam: baglam, indirici: indirici) }
@@ -227,6 +274,21 @@ struct ProgramDetay: View {
                 Image(systemName: "ellipsis.circle")
             }
         }
+    }
+
+    private var topluIndirmeBasligi: String {
+        guard let t = topluIndirme else { return "" }
+        return "\(t.bolumler.count) bölüm, yaklaşık \(Bicim.boyut(t.boyut)) indirilsin mi?"
+    }
+
+    private func topluIndirmeMesaji(_ t: TopluIndirme) -> String {
+        var m = "Bölümler sırayla iner; uygulama kapalıyken de sürer."
+        if Ayarlar.yalnizcaWifi { m += " Yalnızca Wi-Fi'deyken iner." }
+        if let bos = Indirici.bosYer {
+            m += "\nTelefonda boş yer: \(Bicim.boyut(bos))."
+            if t.boyut > bos { m += "\nUyarı: Yer yetmeyebilir; bir kısmı inmeyebilir." }
+        }
+        return m
     }
 
     private func yeniKlasoreEkle() {
