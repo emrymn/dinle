@@ -13,6 +13,10 @@ final class Program {
     var eklenmeTarihi: Date = Date()
     var eskidenYeniye: Bool = true
     var bitenleriGizle: Bool = false
+    /// Akış (RSS/Substack) en son ne zaman yenilendi.
+    var sonYenileme: Date = Date.distantPast
+    /// Akıştan gelen yeni bölümler kendiliğinden indirilsin.
+    var otomatikIndir: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \Bolum.program)
     var bolumler: [Bolum] = []
@@ -21,10 +25,13 @@ final class Program {
         self.ad = ad
     }
 
+    /// Silinmemiş bölümler (akıştan gelip silinenler gizli tutulur ki yenileyince geri gelmesin).
+    var gorunurBolumler: [Bolum] { bolumler.filter { !$0.gizli } }
+
     /// Ekrandaki sıra: yayın tarihine göre (yoksa eklenme tarihine), aynı günse başlığa göre.
     func siraliBolumler() -> [Bolum] {
         let artan = eskidenYeniye
-        return bolumler.sorted { a, b in
+        return gorunurBolumler.sorted { a, b in
             let ta = a.siralamaTarihi, tb = b.siralamaTarihi
             if ta != tb { return artan ? ta < tb : ta > tb }
             let k = a.baslik.localizedStandardCompare(b.baslik)
@@ -32,7 +39,7 @@ final class Program {
         }
     }
 
-    var bitenSayisi: Int { bolumler.filter(\.bitti).count }
+    var bitenSayisi: Int { gorunurBolumler.filter(\.bitti).count }
 }
 
 enum BolumDurumu {
@@ -62,6 +69,10 @@ final class Bolum {
     /// Eklenen dosyanın asıl adı ve boyutu: aynı dosya ikinci kez eklenmesin.
     var kaynakAdi: String = ""
     var kaynakBoyutu: Int64 = 0
+    /// Akıştaki kalıcı kimlik (guid); arşivden eklenen dosyalarda boş.
+    var akisKimligi: String = ""
+    /// Akıştan gelen bölüm silindiğinde: yenilemede geri gelmesin diye gizlenir.
+    var gizli: Bool = false
 
     /// Bölüm silinince klasörlerdeki yeri de silinir.
     @Relationship(deleteRule: .cascade, inverse: \KlasorOgesi.bolum)
@@ -77,6 +88,15 @@ final class Bolum {
     }
 
     var siralamaTarihi: Date { yayinTarihi ?? eklenmeTarihi }
+
+    /// Telefona indirilmiş (ya da arşivden eklenmiş) dosyası var mı.
+    var indirildi: Bool {
+        guard let dosyaAdi else { return false }
+        return FileManager.default.fileExists(atPath: MedyaDeposu.url(dosyaAdi).path)
+    }
+
+    /// Akıştan gelen, internetten çalınabilen bölüm.
+    var akistan: Bool { uzakAdres != nil }
 
     var kapakVerisi: Data? { kapak ?? program?.kapak }
 
@@ -136,7 +156,7 @@ final class Klasor {
 
     /// Klasördeki bölümler, eklenme sırasıyla.
     var bolumler: [Bolum] {
-        ogeler.sorted { $0.sira < $1.sira }.compactMap(\.bolum)
+        ogeler.sorted { $0.sira < $1.sira }.compactMap(\.bolum).filter { !$0.gizli }
     }
 
     func icerir(_ b: Bolum) -> Bool {

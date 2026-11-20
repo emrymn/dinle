@@ -6,6 +6,8 @@ enum Sekme: Hashable {
 
 struct KokGorunum: View {
     @Environment(Oynatici.self) private var oynatici
+    @Environment(Indirici.self) private var indirici
+    @Environment(\.modelContext) private var baglam
     @Environment(\.scenePhase) private var sahne
     @State private var sekme: Sekme = KokGorunum.ilkSekme
 
@@ -45,6 +47,9 @@ struct KokGorunum: View {
         }
         .onChange(of: sahne) { _, yeni in
             if yeni != .active { oynatici.konumuKaydet() }
+            if yeni == .active {
+                Task { await AkisYenileyici.hepsiniYenile(baglam: baglam, indirici: indirici) }
+            }
         }
         .alert("Bir sorun var", isPresented: Binding(
             get: { oynatici.hata != nil },

@@ -3,8 +3,10 @@ import SwiftData
 
 @main
 struct DinleApp: App {
+    @UIApplicationDelegateAdaptor(UygulamaTemsilcisi.self) private var uygulamaTemsilcisi
     private let kapsayici: ModelContainer
     @State private var oynatici: Oynatici
+    @State private var indirici: Indirici
 
     init() {
         do {
@@ -23,6 +25,7 @@ struct DinleApp: App {
         if DemoVerisi.acik { DemoVerisi.yukle(kapsayici.mainContext) }
         #endif
         _oynatici = State(initialValue: Oynatici(baglam: kapsayici.mainContext))
+        _indirici = State(initialValue: Indirici(baglam: kapsayici.mainContext))
         Tema.uiKitGorunumunuAyarla()
     }
 
@@ -30,6 +33,7 @@ struct DinleApp: App {
         WindowGroup {
             KokGorunum()
                 .environment(oynatici)
+                .environment(indirici)
                 .tint(Tema.vurgu)
         }
         .modelContainer(kapsayici)

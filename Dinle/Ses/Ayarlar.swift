@@ -9,6 +9,7 @@ enum Ayarlar {
         static let sonrakiniCal = "sonrakiniCal"
         static let podcastHizi = "podcastHizi"
         static let sonTur = "sonTur"
+        static let yalnizcaWifi = "yalnizcaWifi"
     }
 
     static let ileriSecenekleri: [Double] = [15, 30, 45, 60]
@@ -19,6 +20,7 @@ enum Ayarlar {
 
     static var akilliGeriSarma: Bool { d.object(forKey: Anahtar.akilliGeriSarma) as? Bool ?? true }
     static var sonrakiniCal: Bool { d.object(forKey: Anahtar.sonrakiniCal) as? Bool ?? true }
+    static var yalnizcaWifi: Bool { d.object(forKey: Anahtar.yalnizcaWifi) as? Bool ?? false }
 
     static var ileriAtlama: Double {
         let v = d.double(forKey: Anahtar.ileriAtlama)

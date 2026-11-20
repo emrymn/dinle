@@ -8,6 +8,7 @@ struct AyarlarEkrani: View {
     @AppStorage(Ayarlar.Anahtar.sonrakiniCal) private var sonrakiniCal = true
     @AppStorage(Ayarlar.Anahtar.ileriAtlama) private var ileriAtlama: Double = 30
     @AppStorage(Ayarlar.Anahtar.geriAtlama) private var geriAtlama: Double = 15
+    @AppStorage(Ayarlar.Anahtar.yalnizcaWifi) private var yalnizcaWifi = false
 
     @State private var kullanilanAlan: Int64 = 0
 
@@ -40,8 +41,13 @@ struct AyarlarEkrani: View {
                 }
                 .foregroundStyle(.primary)
 
-                Section("Depolama") {
-                    LabeledContent("Eklenen dosyalar", value: Bicim.boyut(kullanilanAlan))
+                Section {
+                    Toggle("Yalnızca Wi-Fi ile indir", isOn: $yalnizcaWifi)
+                    LabeledContent("Eklenen ve indirilen dosyalar", value: Bicim.boyut(kullanilanAlan))
+                } header: {
+                    Text("İndirme ve depolama")
+                } footer: {
+                    Text("Abone olduğun programlar uygulama her açıldığında (en çok saatte bir) yenilenir. Bir programın sayfasını aşağı çekerek de yenileyebilirsin.")
                 }
 
                 Section {

@@ -10,6 +10,7 @@ struct PodcastlerEkrani: View {
     @State private var yol = NavigationPath()
     @State private var adSor: YeniTur?
     @State private var yeniAd = ""
+    @State private var aboneOl = false
 
     enum YeniTur: Identifiable {
         case program, klasor
@@ -67,12 +68,16 @@ struct PodcastlerEkrani: View {
             .navigationDestination(for: Klasor.self) { KlasorDetay(klasor: $0) }
             .toolbar {
                 Menu {
-                    Button { sor(.program) } label: { Label("Yeni program", systemImage: "mic.badge.plus") }
+                    Button { aboneOl = true } label: { Label("Substack / RSS ile abone ol", systemImage: "dot.radiowaves.up.forward") }
+                    Button { sor(.program) } label: { Label("Yeni program (dosyalardan)", systemImage: "mic.badge.plus") }
                     Button { sor(.klasor) } label: { Label("Yeni klasör", systemImage: "folder.badge.plus") }
                 } label: {
                     Image(systemName: "plus")
                 }
                 .accessibilityLabel("Ekle")
+            }
+            .sheet(isPresented: $aboneOl) {
+                AkisEkleEkrani { p in yol.append(p) }
             }
             .alert(adSor?.baslik ?? "", isPresented: Binding(get: { adSor != nil }, set: { if !$0 { adSor = nil } }), presenting: adSor) { tur in
                 TextField("Adı", text: $yeniAd)
@@ -147,8 +152,8 @@ struct ProgramSatiri: View {
     }
 
     private var ozet: String {
-        let toplam = program.bolumler.count
-        guard toplam > 0 else { return "Bölüm yok" }
+        let toplam = program.gorunurBolumler.count
+        guard toplam > 0 else { return program.akisAdresi != nil ? "Abone" : "Bölüm yok" }
         let biten = program.bitenSayisi
         return biten > 0 ? "\(toplam) bölüm · \(biten) bitti" : "\(toplam) bölüm"
     }
@@ -210,7 +215,14 @@ enum ProgramSilici {
     static func sil(_ b: Bolum, baglam: ModelContext, oynatici: Oynatici) {
         oynatici.silinecek(bolum: b)
         MedyaDeposu.sil(b.dosyaAdi)
-        baglam.delete(b)
+        if b.akistan {
+            // Akış yenilenince geri gelmesin: kaydı tut, gizle.
+            b.dosyaAdi = nil
+            b.gizli = true
+            for oge in b.klasorOgeleri { baglam.delete(oge) }
+        } else {
+            baglam.delete(b)
+        }
         try? baglam.save()
     }
 }

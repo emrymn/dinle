@@ -231,7 +231,7 @@ final class Oynatici {
 
     func oynat() {
         guard player.currentItem != nil else { return }
-        try? AVAudioSession.sharedInstance().setActive(true)
+        Oynatici.oturumuEtkinlestir()
 
         if tur == .podcast, Ayarlar.akilliGeriSarma, let an = duraklatmaAni {
             let geri = DinlemeKurallari.akilliGeriSarma(ara: Date().timeIntervalSince(an))
@@ -249,6 +249,16 @@ final class Oynatici {
             hazirOluncaCal = true
         }
         simdiCaliyorBilgisiniGuncelle()
+    }
+
+    /// Ses oturumunu ana iş parçacığını bekletmeden açar (Xcode'un "Hang Risk" uyarısı).
+    /// AVPlayer çalmaya başlarken oturum zaten açılır; bu yalnızca erkenden hazırlar.
+    nonisolated private static let oturumKuyrugu = DispatchQueue(label: "dinle.ses-oturumu", qos: .userInitiated)
+
+    nonisolated private static func oturumuEtkinlestir() {
+        oturumKuyrugu.async {
+            try? AVAudioSession.sharedInstance().setActive(true)
+        }
     }
 
     func duraklat() {

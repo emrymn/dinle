@@ -13,7 +13,7 @@ struct AnaSayfa: View {
 
     static var yarimKalanlarTanimi: FetchDescriptor<Bolum> {
         let kosul = #Predicate<Bolum> { b in
-            b.konum > 0.0 && b.bitti == false
+            b.konum > 0.0 && b.bitti == false && b.gizli == false
         }
         let sira: [SortDescriptor<Bolum>] = [SortDescriptor(\Bolum.sonDinlenme, order: .reverse)]
         return FetchDescriptor<Bolum>(predicate: kosul, sortBy: sira)
@@ -21,7 +21,7 @@ struct AnaSayfa: View {
 
     static var sonEklenenlerTanimi: FetchDescriptor<Bolum> {
         let kosul = #Predicate<Bolum> { b in
-            b.konum == 0.0 && b.bitti == false
+            b.konum == 0.0 && b.bitti == false && b.gizli == false
         }
         let sira: [SortDescriptor<Bolum>] = [SortDescriptor(\Bolum.eklenmeTarihi, order: .reverse)]
         var t = FetchDescriptor<Bolum>(predicate: kosul, sortBy: sira)
