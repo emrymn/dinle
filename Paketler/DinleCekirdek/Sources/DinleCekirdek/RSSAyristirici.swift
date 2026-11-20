@@ -187,12 +187,15 @@ public enum AkisAdresi {
     public static func adaylar(_ girdi: String) -> [URL] {
         var s = girdi.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !s.isEmpty, !s.contains(" ") else { return [] }
+        s = uygulamaLinkindenAc(s)
 
         // Yalnızca yayın adı yazıldıysa Substack adresi say.
         if !s.contains(".") && !s.contains("/") {
             s = "\(s.lowercased()).substack.com"
         }
-        if s.hasPrefix("feed://") { s = "https://" + s.dropFirst("feed://".count) }
+        for onek in ["feed://", "itpc://", "pcast://", "podcast://", "podcasts://"] where s.lowercased().hasPrefix(onek) {
+            s = "https://" + s.dropFirst(onek.count)
+        }
         if !s.lowercased().hasPrefix("http://") && !s.lowercased().hasPrefix("https://") {
             s = "https://" + s
         }
@@ -217,5 +220,23 @@ public enum AkisAdresi {
             sonuc.append(url)
         }
         return sonuc
+    }
+
+    /// Podcast uygulamalarının "abone ol" linklerinin içindeki akış adresini çıkarır.
+    /// Ör. "overcast://x-callback-url/add?url=https%3A%2F%2F…", "pktc://subscribe/…",
+    /// "https://pca.st/subscribe/…" ya da "…?url=…" / "…?feed=…" parametreli linkler.
+    static func uygulamaLinkindenAc(_ s: String) -> String {
+        if let bilesen = URLComponents(string: s),
+           let deger = bilesen.queryItems?.first(where: { ["url", "feed", "feedurl", "rss"].contains($0.name.lowercased()) })?.value,
+           deger.contains("."), deger.lowercased().contains("feed") || deger.lowercased().hasSuffix(".rss") || deger.lowercased().hasSuffix(".xml") {
+            return deger
+        }
+        let kucuk = s.lowercased()
+        for onek in ["pktc://subscribe/", "https://pca.st/subscribe/", "http://pca.st/subscribe/",
+                     "castro://subscribe/", "overcast://x-callback-url/add?url="] where kucuk.hasPrefix(onek) {
+            let kalan = String(s.dropFirst(onek.count))
+            return kalan.removingPercentEncoding ?? kalan
+        }
+        return s
     }
 }

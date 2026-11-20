@@ -30,13 +30,13 @@ struct AkisEkleEkrani: View {
                 }
 
                 Section {
-                    Label("Substack'te yayının sayfasını aç.", systemImage: "1.circle")
-                    Label("Podcast bölümünde **Listen on…** ya da **Podcast uygulamasında dinle**'ye dokun.", systemImage: "2.circle")
-                    Label("**Copy private RSS link / Özel RSS linkini kopyala**'yı seç ve buraya yapıştır.", systemImage: "3.circle")
+                    Label("Tarayıcıda substack.com'a giriş yap, **Settings / Ayarlar** sayfasında yayına tıkla.", systemImage: "1.circle")
+                    Label("**Manage subscription** sayfasında **Private podcast feed** bölümüne in, **Set up podcast**'e bas.", systemImage: "2.circle")
+                    Label("Açılan sayfadaki RSS linkini kopyala. Yalnız uygulama düğmeleri varsa birine (ör. Overcast) basılı tutup **Bağlantıyı Kopyala** de; içindeki linki ben ayıklarım.", systemImage: "3.circle")
                 } header: {
-                    Text("Ücretli abonelikler")
+                    Text("Ücretli abonelikler (tam bölümler)")
                 } footer: {
-                    Text("Özel link sana aittir; ücretli bölümler onunla gelir. Kimseyle paylaşma.")
+                    Text("Herkese açık akışta ücretli bölümlerin yalnız önizlemesi olur. Özel link sana aittir; kimseyle paylaşma.")
                 }
 
                 if let program {

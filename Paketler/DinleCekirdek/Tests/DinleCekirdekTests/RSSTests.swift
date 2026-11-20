@@ -88,6 +88,13 @@ final class RSSTests: XCTestCase {
         XCTAssertEqual(AkisAdresi.adaylar("feeds.example.com/show.xml").map(\.absoluteString), ["https://feeds.example.com/show.xml"])
         XCTAssertEqual(AkisAdresi.adaylar("https://www.theantidote.co/").map(\.absoluteString),
                        ["https://www.theantidote.co/feed/podcast", "https://www.theantidote.co/feed"])
+        // Podcast uygulaması linklerinin içinden akış adresi
+        let oz = "https://api.substack.com/feed/podcast/123/private/abc.rss"
+        XCTAssertEqual(AkisAdresi.adaylar("overcast://x-callback-url/add?url=https%3A%2F%2Fapi.substack.com%2Ffeed%2Fpodcast%2F123%2Fprivate%2Fabc.rss").map(\.absoluteString), [oz])
+        XCTAssertEqual(AkisAdresi.adaylar("pktc://subscribe/api.substack.com/feed/podcast/123/private/abc.rss").map(\.absoluteString), [oz])
+        XCTAssertEqual(AkisAdresi.adaylar("podcast://api.substack.com/feed/podcast/123/private/abc.rss").map(\.absoluteString), [oz])
+        XCTAssertEqual(AkisAdresi.adaylar("itpc://api.substack.com/feed/podcast/123/private/abc.rss").map(\.absoluteString), [oz])
+        XCTAssertEqual(AkisAdresi.adaylar("https://example.com/app/add?url=https://api.substack.com/feed/podcast/123/private/abc.rss").map(\.absoluteString), [oz])
         XCTAssertEqual(AkisAdresi.adaylar("  ").count, 0)
         XCTAssertEqual(AkisAdresi.adaylar("iki kelime").count, 0)
     }
