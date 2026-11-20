@@ -1,0 +1,48 @@
+# Her PR'da ve main'e her gönderimde:
+#  1) Çekirdek paketin testleri (tarih çözme, "Bitti" kuralı, akıllı geri sarma, biçimler)
+#  2) Uygulamanın iOS Simulator için derlenmesi (imzasız)
+# Böylece Mac'e `git pull` ile gelen kod her zaman derlenir hâlde olur.
+name: iOS derleme
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: derle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  derle:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode sürümü
+        run: xcodebuild -version
+
+      - name: Çekirdek testleri
+        run: swift test --package-path Paketler/DinleCekirdek
+
+      - name: Uygulamayı derle
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Dinle.xcodeproj \
+            -scheme Dinle \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee derleme.log | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" derleme.log
+
+      - name: Derleme günlüğü
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: derleme-gunlugu
+          path: derleme.log
