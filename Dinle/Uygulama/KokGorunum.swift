@@ -7,7 +7,15 @@ enum Sekme: Hashable {
 struct KokGorunum: View {
     @Environment(Oynatici.self) private var oynatici
     @Environment(\.scenePhase) private var sahne
-    @State private var sekme: Sekme = .anaSayfa
+    @State private var sekme: Sekme = KokGorunum.ilkSekme
+
+    private static var ilkSekme: Sekme {
+        #if DEBUG
+        return DemoVerisi.baslangicSekmesi
+        #else
+        return .anaSayfa
+        #endif
+    }
     @State private var oynaticiAcik = false
 
     var body: some View {

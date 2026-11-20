@@ -41,6 +41,11 @@ struct PodcastlerEkrani: View {
                 }
                 .accessibilityLabel("Yeni program")
             }
+            .onAppear {
+                #if DEBUG
+                if DemoVerisi.programAc, yol.isEmpty, let ilk = programlar.first { yol = [ilk] }
+                #endif
+            }
             .alert("Yeni program", isPresented: $yeniAdSor) {
                 TextField("Programın adı", text: $yeniAd)
                 Button("Oluştur") { olustur() }
