@@ -1,6 +1,6 @@
 # Dinle
 
-Kendi podcast ve müzik uygulamam. iPhone'da çalışan bir SwiftUI uygulaması. Görünümü Substack gibi sade: beyaz zemin, serif başlıklar, tek turuncu vurgu, gece modu.
+Kendi podcast ve müzik uygulamam. Telefonda **Podcast** adıyla görünür (projenin adı Dinle). iPhone'da çalışan bir SwiftUI uygulaması. Görünümü Substack gibi sade: beyaz zemin, serif başlıklar, tek turuncu vurgu, gece modu.
 
 - **Arka planda çalar.** Ekran kilitliyken ya da başka uygulamadayken ses kesilmez. Kilit ekranında ve Denetim Merkezi'nde kontroller ve kapak görünür.
 - **Kaldığın yerden devam eder.** Konum 5 sn'de bir ve her duraklatmada kaydedilir. Uygulama kapanıp açılsa da aynı saniyeden başlar. Ara verdiysen, aranın uzunluğuna göre 3–30 sn geri sarar (akıllı geri sarma).
@@ -36,7 +36,7 @@ Kendi podcast ve müzik uygulamam. iPhone'da çalışan bir SwiftUI uygulaması.
    open Dinle.xcodeproj
    ```
 6. iPhone'u kabloyla bağla. Xcode'un üstündeki cihaz seçiciden iPhone'unu seç ve **▶** bas.
-7. İlk seferde iPhone uygulamaya güvenmeyebilir. **Ayarlar → Genel → VPN ve Aygıt Yönetimi** → Apple ID'n → **Güven**. iPhone'da Geliştirici Modu kapalıysa **Ayarlar → Gizlilik ve Güvenlik → Geliştirici Modu**'nu aç ve telefonu yeniden başlat.
+7. İlk açılışta "Untrusted Developer / Güvenilmeyen Geliştirici" çıkarsa: **Ayarlar → Genel → VPN ve Aygıt Yönetimi** → "Apple Development: …" → **Güven**. iPhone'da Geliştirici Modu kapalıysa **Ayarlar → Gizlilik ve Güvenlik → Geliştirici Modu**'nu aç ve telefonu yeniden başlat.
 
 > Xcode'daki **Signing & Capabilities** sekmesinden takım seçme. Takım `kur.sh` ile ayarlanıyor. Orada değişiklik yaparsan `git pull` çakışma verebilir.
 

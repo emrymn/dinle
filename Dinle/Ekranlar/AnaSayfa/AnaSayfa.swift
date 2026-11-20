@@ -53,7 +53,7 @@ struct AnaSayfa: View {
                 .padding(.bottom, 24)
             }
             .background(Tema.zemin)
-            .navigationTitle("Dinle")
+            .navigationTitle("Podcast")
         }
     }
 
