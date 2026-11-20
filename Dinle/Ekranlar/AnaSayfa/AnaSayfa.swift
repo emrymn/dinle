@@ -6,19 +6,25 @@ struct AnaSayfa: View {
     @Binding var sekme: Sekme
     @Environment(Oynatici.self) private var oynatici
 
-    @Query(filter: #Predicate<Bolum> { $0.konum > 0 && $0.bitti == false },
-           sort: [SortDescriptor(\Bolum.sonDinlenme, order: .reverse)])
-    private var yarimKalanlar: [Bolum]
-
+    @Query(AnaSayfa.yarimKalanlarTanimi) private var yarimKalanlar: [Bolum]
     @Query(AnaSayfa.sonEklenenlerTanimi) private var sonEklenenler: [Bolum]
     @Query private var programlar: [Program]
     @Query private var sarkilar: [Sarki]
 
+    static var yarimKalanlarTanimi: FetchDescriptor<Bolum> {
+        let kosul = #Predicate<Bolum> { b in
+            b.konum > 0.0 && b.bitti == false
+        }
+        let sira: [SortDescriptor<Bolum>] = [SortDescriptor(\Bolum.sonDinlenme, order: .reverse)]
+        return FetchDescriptor<Bolum>(predicate: kosul, sortBy: sira)
+    }
+
     static var sonEklenenlerTanimi: FetchDescriptor<Bolum> {
-        var t = FetchDescriptor<Bolum>(
-            predicate: #Predicate<Bolum> { $0.konum == 0 && $0.bitti == false },
-            sortBy: [SortDescriptor(\.eklenmeTarihi, order: .reverse)]
-        )
+        let kosul = #Predicate<Bolum> { b in
+            b.konum == 0.0 && b.bitti == false
+        }
+        let sira: [SortDescriptor<Bolum>] = [SortDescriptor(\Bolum.eklenmeTarihi, order: .reverse)]
+        var t = FetchDescriptor<Bolum>(predicate: kosul, sortBy: sira)
         t.fetchLimit = 6
         return t
     }
