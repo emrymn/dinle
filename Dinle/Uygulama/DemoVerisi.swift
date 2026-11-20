@@ -10,6 +10,8 @@ import DinleCekirdek
 ///   -demo                 örnek programlar, bölümler ve şarkılar
 ///   -sekme <ad>           anaSayfa | podcastler | muzik | ayarlar
 ///   -programAc            Podcastler'de ilk programın sayfasını açar
+///   -klasorAc             Podcastler'de ilk klasörü açar
+///   -albumAc              Müzik'te ilk albümü açar
 enum DemoVerisi {
 
     static var acik: Bool { ProcessInfo.processInfo.arguments.contains("-demo") }
@@ -30,6 +32,8 @@ enum DemoVerisi {
     }
 
     static var programAc: Bool { ProcessInfo.processInfo.arguments.contains("-programAc") }
+    static var klasorAc: Bool { ProcessInfo.processInfo.arguments.contains("-klasorAc") }
+    static var albumAc: Bool { ProcessInfo.processInfo.arguments.contains("-albumAc") }
 
     @MainActor
     static func yukle(_ baglam: ModelContext) {
@@ -45,6 +49,7 @@ enum DemoVerisi {
             "Bölüm 5: Modernizmin eşiğinde",
             "Bölüm 6: Okur sorularına cevaplar",
         ]
+        var bolumler: [Bolum] = []
         for (i, baslik) in basliklar.enumerated() {
             let b = Bolum(baslik: baslik)
             b.yayinTarihi = TarihCozucu.tarih(yil: 2023, ay: 3 + i, gun: 14)
@@ -64,6 +69,7 @@ enum DemoVerisi {
                 break
             }
             baglam.insert(b)
+            bolumler.append(b)
         }
 
         let ikinci = Program(ad: "The Antidote")
@@ -74,15 +80,28 @@ enum DemoVerisi {
         b.program = ikinci
         baglam.insert(b)
 
+        let klasor = Klasor(ad: "Yolda dinlenecekler")
+        baglam.insert(klasor)
+        for (i, b) in [bolumler[4], b, bolumler[2]].enumerated() {
+            let oge = KlasorOgesi(sira: i)
+            baglam.insert(oge)
+            oge.klasor = klasor
+            oge.bolum = b
+        }
+
         let sarkilar: [(String, String, String)] = [
             ("Clair de Lune", "Debussy", "Suite bergamasque"),
+            ("Passepied", "Debussy", "Suite bergamasque"),
+            ("Menuet", "Debussy", "Suite bergamasque"),
             ("Gymnopédie No. 1", "Satie", "Gymnopédies"),
+            ("Gymnopédie No. 2", "Satie", "Gymnopédies"),
             ("Ağır Roman", "Kardeş Türküler", ""),
             ("Nuvole Bianche", "Ludovico Einaudi", "Una Mattina"),
         ]
-        for (ad, sanatci, album) in sarkilar {
+        for (i, (ad, sanatci, album)) in sarkilar.enumerated() {
             let s = Sarki(baslik: ad, sanatci: sanatci, album: album, dosyaAdi: "yok.mp3")
             s.sure = 240
+            s.kaynakAdi = String(format: "%02d %@.mp3", i + 1, ad)
             baglam.insert(s)
         }
         try? baglam.save()

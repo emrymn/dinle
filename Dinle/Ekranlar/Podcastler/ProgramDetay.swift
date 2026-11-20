@@ -9,10 +9,16 @@ struct ProgramDetay: View {
     @Environment(Oynatici.self) private var oynatici
     @Environment(\.dismiss) private var kapat
 
+    @Query(sort: [SortDescriptor(\Klasor.olusturma)]) private var klasorler: [Klasor]
+
     @State private var iceAktarAcik = false
     @State private var klasorSec = false
     @State private var ekleniyor = false
     @State private var silmeOnayi = false
+    @State private var bilgi: String?
+    /// "Yeni klasör…" seçilince klasöre eklenecek bölüm.
+    @State private var klasoreEklenecek: Bolum?
+    @State private var yeniKlasorAdi = ""
 
     private var bolumler: [Bolum] {
         let sira = program.siraliBolumler()
@@ -51,8 +57,18 @@ struct ProgramDetay: View {
                     } label: {
                         Label("Sil", systemImage: "trash")
                     }
+                    Button {
+                        yeniKlasorAdi = ""
+                        klasoreEklenecek = b
+                    } label: {
+                        Label("Klasöre", systemImage: "folder.badge.plus")
+                    }
+                    .tint(.gray)
                 }
                 .contextMenu {
+                    KlasoreEkleMenusu(bolum: b, klasorler: klasorler,
+                                      ekle: { KlasorIslemleri.ekle(b, $0, baglam: baglam) },
+                                      yeniKlasor: { yeniKlasorAdi = ""; klasoreEklenecek = b })
                     Button { oynatici.cal(b, bastan: true) } label: {
                         Label("Baştan çal", systemImage: "backward.end")
                     }
@@ -79,6 +95,23 @@ struct ProgramDetay: View {
                     .padding(24)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
             }
+        }
+        .alert("Klasöre ekle", isPresented: Binding(get: { klasoreEklenecek != nil }, set: { if !$0 { klasoreEklenecek = nil } })) {
+            TextField("Yeni klasörün adı", text: $yeniKlasorAdi)
+            Button("Yeni klasöre ekle") { yeniKlasoreEkle() }
+            ForEach(klasorler.prefix(6)) { k in
+                Button(k.ad) {
+                    if let b = klasoreEklenecek { KlasorIslemleri.ekle(b, k, baglam: baglam) }
+                }
+            }
+            Button("Vazgeç", role: .cancel) {}
+        } message: {
+            Text(klasorler.isEmpty ? "Yeni bir klasör oluştur." : "Var olan bir klasörü seç ya da yeni bir ad yaz.")
+        }
+        .alert("Ekleme tamamlandı", isPresented: Binding(get: { bilgi != nil }, set: { if !$0 { bilgi = nil } })) {
+            Button("Tamam", role: .cancel) {}
+        } message: {
+            Text(bilgi ?? "")
         }
         .confirmationDialog("“\(program.ad)” ve bütün bölümleri silinsin mi?", isPresented: $silmeOnayi, titleVisibility: .visible) {
             Button("Programı sil", role: .destructive) {
@@ -144,6 +177,14 @@ struct ProgramDetay: View {
         }
     }
 
+    private func yeniKlasoreEkle() {
+        let ad = yeniKlasorAdi.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !ad.isEmpty, let b = klasoreEklenecek else { return }
+        let k = Klasor(ad: ad)
+        baglam.insert(k)
+        KlasorIslemleri.ekle(b, k, baglam: baglam)
+    }
+
     private func bittiDegistir(_ b: Bolum) {
         b.bitti.toggle()
         if b.bitti { b.konum = 0 }
@@ -153,26 +194,44 @@ struct ProgramDetay: View {
     private func iceAktar(_ sonuc: Result<[URL], Error>) {
         guard case .success(let urller) = sonuc, !urller.isEmpty else { return }
         ekleniyor = true
+        let bilinenler = Set(program.bolumler
+            .filter { !$0.kaynakAdi.isEmpty }
+            .map { KopyaDenetimi.DosyaKimligi(ad: $0.kaynakAdi, boyut: $0.kaynakBoyutu) })
         Task {
-            let bilgiler = await DosyaIceAktarici.iceAktar(urller)
+            let sonuc = await DosyaIceAktarici.iceAktar(urller, bilinenler: bilinenler)
+            var atlanan = sonuc.atlanan
+            var eklenen = 0
             if program.kapak == nil {
-                program.kapak = bilgiler.first { $0.kapak != nil }?.kapak
+                program.kapak = sonuc.eklenenler.first { $0.kapak != nil }?.kapak
             }
-            for bilgi in bilgiler {
-                let b = Bolum(baslik: bilgi.gorunenBaslik)
-                b.sure = bilgi.sure
-                b.dosyaAdi = bilgi.dosyaAdi
-                b.yayinTarihi = TarihCozucu.yayinTarihiBul(metaTarih: bilgi.metaTarih,
-                                                         dosyaAdi: bilgi.ozgunAd,
-                                                         dosyaTarihi: bilgi.dosyaTarihi)
-                if bilgi.kapak != program.kapak { b.kapak = bilgi.kapak }
+            var mevcut = program.bolumler
+            for dosya in sonuc.eklenenler {
+                // Farklı adla kaydedilmiş aynı bölüm: başlık + süre aynıysa ekleme.
+                if mevcut.contains(where: { KopyaDenetimi.ayniKayit(baslik: $0.baslik, sure: $0.sure, baslik: dosya.gorunenBaslik, sure: dosya.sure) }) {
+                    MedyaDeposu.sil(dosya.dosyaAdi)
+                    atlanan += 1
+                    continue
+                }
+                let b = Bolum(baslik: dosya.gorunenBaslik)
+                b.sure = dosya.sure
+                b.dosyaAdi = dosya.dosyaAdi
+                b.kaynakAdi = dosya.kaynakAdi
+                b.kaynakBoyutu = dosya.kaynakBoyutu
+                b.yayinTarihi = TarihCozucu.yayinTarihiBul(metaTarih: dosya.metaTarih,
+                                                         dosyaAdi: dosya.ozgunAd,
+                                                         dosyaTarihi: dosya.dosyaTarihi)
+                if dosya.kapak != program.kapak { b.kapak = dosya.kapak }
                 b.program = program
                 baglam.insert(b)
+                mevcut.append(b)
+                eklenen += 1
             }
             try? baglam.save()
             ekleniyor = false
-            if bilgiler.isEmpty {
-                oynatici.hata = "Seçilenlerin içinde ses dosyası bulunamadı."
+            if atlanan > 0 {
+                bilgi = "\(eklenen) bölüm eklendi. \(atlanan) dosya zaten vardı, tekrar eklenmedi."
+            } else if eklenen == 0 {
+                bilgi = "Seçilenlerin içinde ses dosyası bulunamadı."
             }
         }
     }

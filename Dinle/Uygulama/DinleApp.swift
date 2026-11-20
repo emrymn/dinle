@@ -14,7 +14,8 @@ struct DinleApp: App {
             let bellekte = false
             #endif
             let ayar = ModelConfiguration(isStoredInMemoryOnly: bellekte)
-            kapsayici = try ModelContainer(for: Program.self, Bolum.self, Sarki.self, configurations: ayar)
+            kapsayici = try ModelContainer(for: Program.self, Bolum.self, Sarki.self, Klasor.self, KlasorOgesi.self,
+                                       configurations: ayar)
         } catch {
             fatalError("Veri deposu açılamadı: \(error)")
         }

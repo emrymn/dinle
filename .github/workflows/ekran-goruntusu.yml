@@ -75,8 +75,11 @@ jobs:
             cek "$gorunum-2-anasayfa" -demo
             cek "$gorunum-3-podcastler" -demo -sekme podcastler
             cek "$gorunum-4-program" -demo -sekme podcastler -programAc
-            cek "$gorunum-5-muzik" -demo -sekme muzik
-            cek "$gorunum-6-ayarlar" -demo -sekme ayarlar
+            cek "$gorunum-5-klasor" -demo -sekme podcastler -klasorAc
+            cek "$gorunum-6-albumler" -demo -sekme muzik
+            cek "$gorunum-7-album" -demo -sekme muzik -albumAc
+            cek "$gorunum-8-sarkilar" -demo -sekme muzik -muzik sarkilar
+            cek "$gorunum-9-ayarlar" -demo -sekme ayarlar
           done
           ls -la ekranlar
 

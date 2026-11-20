@@ -129,3 +129,24 @@ final class BicimTests: XCTestCase {
         XCTAssertEqual(Bicim.boyut(Int64(1.2 * 1024 * 1_048_576)), "1,2 GB")
     }
 }
+
+final class KopyaDenetimiTests: XCTestCase {
+
+    func testDosyaKimligi() {
+        let a = KopyaDenetimi.DosyaKimligi(ad: "Bölüm 3.MP3", boyut: 1000)
+        let b = KopyaDenetimi.DosyaKimligi(ad: "bölüm 3.mp3", boyut: 1000)
+        let c = KopyaDenetimi.DosyaKimligi(ad: "bölüm 3.mp3", boyut: 1001)
+        XCTAssertEqual(a, b)
+        XCTAssertNotEqual(a, c)
+        XCTAssertEqual(Set([a, b, c]).count, 2)
+    }
+
+    func testAyniKayit() {
+        XCTAssertTrue(KopyaDenetimi.ayniKayit(baslik: "Bölüm 3 – Konuk", sure: 3600, baslik: "  bolum 3 - KONUK ", sure: 3601))
+        XCTAssertFalse(KopyaDenetimi.ayniKayit(baslik: "Bölüm 3", sure: 3600, baslik: "Bölüm 3", sure: 3700))
+        XCTAssertTrue(KopyaDenetimi.ayniKayit(baslik: "Bölüm 3", sure: 0, baslik: "Bölüm 3", sure: 3700))
+        XCTAssertFalse(KopyaDenetimi.ayniKayit(baslik: "Bölüm 3", sure: 10, baslik: "Bölüm 4", sure: 10))
+        XCTAssertFalse(KopyaDenetimi.ayniKayit(baslik: "", sure: 10, baslik: "", sure: 10))
+        XCTAssertTrue(KopyaDenetimi.ayniKayit(baslik: "Işık", sure: 10, baslik: "ışık", sure: 10))
+    }
+}

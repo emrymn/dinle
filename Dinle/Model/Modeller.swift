@@ -59,6 +59,13 @@ final class Bolum {
     var uzakAdres: String?
     @Attribute(.externalStorage) var kapak: Data?
     var program: Program?
+    /// Eklenen dosyanın asıl adı ve boyutu: aynı dosya ikinci kez eklenmesin.
+    var kaynakAdi: String = ""
+    var kaynakBoyutu: Int64 = 0
+
+    /// Bölüm silinince klasörlerdeki yeri de silinir.
+    @Relationship(deleteRule: .cascade, inverse: \KlasorOgesi.bolum)
+    var klasorOgeleri: [KlasorOgesi] = []
 
     init(baslik: String) {
         self.baslik = baslik
@@ -96,6 +103,8 @@ final class Sarki {
     @Attribute(.externalStorage) var kapak: Data?
     var sonCalinma: Date = Date.distantPast
     var eklenmeTarihi: Date = Date()
+    var kaynakAdi: String = ""
+    var kaynakBoyutu: Int64 = 0
 
     init(baslik: String, sanatci: String, album: String, dosyaAdi: String) {
         self.baslik = baslik
@@ -107,5 +116,46 @@ final class Sarki {
     var calinabilirURL: URL? {
         let url = MedyaDeposu.url(dosyaAdi)
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
+    }
+}
+
+/// Kullanıcının adlandırdığı bölüm klasörü (çalma listesi gibi):
+/// farklı programlardan seçilen bölümler kendi sırasıyla durur.
+@Model
+final class Klasor {
+    var kimlik: UUID = UUID()
+    var ad: String = ""
+    var olusturma: Date = Date()
+
+    @Relationship(deleteRule: .cascade, inverse: \KlasorOgesi.klasor)
+    var ogeler: [KlasorOgesi] = []
+
+    init(ad: String) {
+        self.ad = ad
+    }
+
+    /// Klasördeki bölümler, eklenme sırasıyla.
+    var bolumler: [Bolum] {
+        ogeler.sorted { $0.sira < $1.sira }.compactMap(\.bolum)
+    }
+
+    func icerir(_ b: Bolum) -> Bool {
+        ogeler.contains { $0.bolum === b }
+    }
+
+    var sonrakiSira: Int {
+        (ogeler.map(\.sira).max() ?? -1) + 1
+    }
+}
+
+/// Klasör ile bölüm arasındaki bağ; sırayı tutar.
+@Model
+final class KlasorOgesi {
+    var sira: Int = 0
+    var klasor: Klasor?
+    var bolum: Bolum?
+
+    init(sira: Int) {
+        self.sira = sira
     }
 }

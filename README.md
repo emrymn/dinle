@@ -10,9 +10,11 @@ Kendi podcast ve müzik uygulamam. Telefonda **Podcast** adıyla görünür (pro
   - Biten bölüm **Bitti** olarak görünür. Bölümün %97'si dinlendiyse ya da sona 45 sn'den az kaldıysa bitmiş sayılır.
   - Satırı sağa kaydırarak bölümü elle Bitti/Bitmedi yapabilirsin.
   - Bölüm bitince sıradakine geçer.
-- **Müzik:** Podcastlerden ayrı bir bölüm. Dosyalar'daki şarkıları ekler, sırayla, karışık ya da tekrar modunda çalar.
+- **Klasörler:** Podcastler'de **+ → Yeni klasör** ile adlandırdığın bir klasör aç (ör. "Yolda dinlenecekler"). Bir bölüme basılı tutup **Klasöre ekle**'yi seç ya da bölümü sola kaydırıp **Klasöre**'ye bas. Klasör kendi sırasıyla çalar. Sırayı **Düzenle** ile sürükleyerek değiştirebilirsin.
+- **Müzik:** Podcastlerden ayrı bir bölüm. **+ → Albüm klasörü seç** ile bir klasördeki bütün şarkılar tek seferde bir albüm olur. Albüm adı dosyanın içindeki bilgiden alınır, yoksa klasörün adı kullanılır. **Albümler** görünümünde kapaklarıyla listelenir. Albüme dokununca sayfası açılır, oradan hepsini çalabilir ya da karışık çalabilirsin. **Şarkılar** görünümünde bütün şarkılar bir arada durur.
+- **Kopyalar eklenmez:** Aynı dosya (aynı ad ve boyut) ya da aynı bölüm/şarkı (aynı başlık ve süre) ikinci kez eklenmez. Ekleme bitince kaç tanesinin atlandığı söylenir.
 - **AirPods:**
-  - Podcastte iki kez dokunmak ileri, üç kez dokunmak geri atlar. Müzikte sonraki/önceki şarkıya geçer.
+  - Podcastte iki kez dokunmak ileri, üç kez dokunmak geri atlar. Müzikte iki kez dokunmak sonraki şarkıya, üç kez dokunmak önceki şarkıya geçer.
   - Kulaktan çıkarınca ses durur ve yer kaydedilir.
 - **Hız:** 0,8× – 2,5×.
 
@@ -61,6 +63,11 @@ Sonra Xcode'da **▶**. Bu kadar.
 - [ ] AirPods'a iki kez dokun: 30 sn ileri. Üç kez dokun: 15 sn geri.
 - [ ] Bir klasör dolusu dosya ekle. Bölümler tarih sırasıyla gelmeli.
 - [ ] Bir bölümü sona kadar dinle. **Bitti** olmalı ve sıradakine geçmeli.
+- [ ] Aynı klasörü ikinci kez ekle. "… zaten vardı, tekrar eklenmedi" demeli, liste aynı kalmalı.
+- [ ] Bir klasör aç, farklı programlardan bölüm ekle, klasörden çal. Bölüm bitince klasördeki sıradaki çalmalı.
+- [ ] Müzik'e bir albüm klasörü ekle. **Albümler**'de tek kart olarak görünmeli.
+- [ ] Müzik çalarken AirPods'a üç kez dokun. Önceki şarkıya geçmeli (şarkının başına dönmemeli).
+- [ ] Ana Sayfa boşken içerik ekranın iki yanına kadar uzanmalı, yanlarda siyah şerit olmamalı.
 
 ## Geliştirme
 
@@ -86,8 +93,8 @@ swift test --package-path Paketler/DinleCekirdek
 
 ## Yol haritası
 
-1. ~~İskelet: arka planda çalma, kaldığın yerden devam, dosya ekleme, tasarım~~ **← şu an**
-2. RSS / Substack akışları: link yapıştırarak abone ol, bölümleri indir, dosya + akış birleştirme
-3. Müzik: albüm/sanatçı listeleri
+1. ~~İskelet: arka planda çalma, kaldığın yerden devam, dosya ekleme, tasarım~~
+2. ~~Bölüm klasörleri, müzik albümleri, kopya önleme, AirPods'la şarkı değiştirme~~ **← şu an**
+3. RSS / Substack akışları: link yapıştırarak abone ol, bölümleri indir, dosya + akış birleştirme
 4. AirPods: takınca devam, baş hareketleri, uyku zamanlayıcısı ve uyku algılama
 5. Siri ile devam, Substack girişiyle abonelikleri otomatik çekme, ses iyileştirme, yedekleme

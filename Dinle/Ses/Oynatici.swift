@@ -88,6 +88,8 @@ final class Oynatici {
     @ObservationIgnored private var hazirOluncaCal = false
     @ObservationIgnored private var kesintideCaliyordu = false
     @ObservationIgnored private var asilSira: [Sarki] = []
+    /// Bir klasörden çalınıyorsa o klasörün sırası; yoksa programın sırası kullanılır.
+    @ObservationIgnored private var podcastSirasi: [Bolum]?
     @ObservationIgnored private var kapakSanati: MPMediaItemArtwork?
 
     init(baglam: ModelContext) {
@@ -102,15 +104,17 @@ final class Oynatici {
     // MARK: Podcast
 
     /// Bir bölümü kaldığı yerden çalar; zaten yüklüyse oynat/duraklat yapar.
-    func devamEt(_ b: Bolum) {
+    /// `sira` verilirse (klasör) bölüm bitince o sıradaki bir sonraki çalar.
+    func devamEt(_ b: Bolum, sira: [Bolum]? = nil) {
         if bolum === b {
+            if let sira { podcastSirasi = sira }
             oynatDuraklat()
             return
         }
-        cal(b)
+        cal(b, sira: sira)
     }
 
-    func cal(_ b: Bolum, bastan: Bool = false) {
+    func cal(_ b: Bolum, bastan: Bool = false, sira: [Bolum]? = nil) {
         guard let url = b.calinabilirURL else {
             hata = "“\(b.baslik)” bulunamadı. Dosya silinmiş olabilir."
             return
@@ -120,6 +124,7 @@ final class Oynatici {
         sarki = nil
         muzikSirasi = []
         asilSira = []
+        podcastSirasi = sira
         let baslangic = bastan ? 0 : DinlemeKurallari.devamKonumu(kayitli: b.konum, sure: b.sure, bitti: b.bitti)
         if b.bitti {
             b.bitti = false
@@ -187,9 +192,11 @@ final class Oynatici {
         sarkiyiYukle(muzikSirasi[siraIndeksi], baslangic: 0, cal: true)
     }
 
-    func oncekiSarki() {
+    /// `bastanAl`: şarkının 3. saniyesinden sonra basılırsa önce şarkıyı başa alır (ekrandaki düğme).
+    /// AirPods'a üç dokunuş her zaman önceki şarkıya geçer.
+    func oncekiSarki(bastanAl: Bool = true) {
         guard !muzikSirasi.isEmpty else { return }
-        if konum > 3 || siraIndeksi == 0 {
+        if (bastanAl && konum > 3) || siraIndeksi == 0 {
             atla(konuma: 0)
             return
         }
@@ -360,7 +367,8 @@ final class Oynatici {
                 hazirsaBasla()
             }
         case .failed:
-            hata = "Bu dosya çalınamadı."
+            // Açılışta sessizce hazırlanan öğe açılamadıysa uyarı gösterme; yalnız çalmak istenince.
+            if caliyor || hazirOluncaCal { hata = "Bu dosya çalınamadı." }
             caliyor = false
             hazirOluncaCal = false
             simdiCaliyorBilgisiniGuncelle()
@@ -384,7 +392,7 @@ final class Oynatici {
             b.sonDinlenme = Date()
             try? baglam.save()
             if Ayarlar.sonrakiniCal, let sonraki = sonrakiBolum(b) {
-                cal(sonraki, bastan: false)
+                cal(sonraki, bastan: false, sira: podcastSirasi)
             } else {
                 caliyor = false
                 konum = 0
@@ -401,10 +409,17 @@ final class Oynatici {
         }
     }
 
-    /// Programın ekrandaki sırasında bu bölümden sonra gelen, bitmemiş ilk bölüm.
+    /// Klasörden çalınıyorsa klasörün, yoksa programın ekrandaki sırasında
+    /// bu bölümden sonra gelen, bitmemiş ilk bölüm.
     private func sonrakiBolum(_ b: Bolum) -> Bolum? {
-        guard let program = b.program else { return nil }
-        let sira = program.siraliBolumler()
+        let sira: [Bolum]
+        if let podcastSirasi {
+            sira = podcastSirasi
+        } else if let program = b.program {
+            sira = program.siraliBolumler()
+        } else {
+            return nil
+        }
         guard let i = sira.firstIndex(where: { $0 === b }) else { return nil }
         return sira[(i + 1)...].first { !$0.bitti && $0.calinabilirURL != nil }
     }
@@ -576,7 +591,7 @@ final class Oynatici {
         }
         m.previousTrackCommand.addTarget { [weak self] _ in
             guard let self else { return .commandFailed }
-            self.tur == .podcast ? self.geriAtla() : self.oncekiSarki()
+            self.tur == .podcast ? self.geriAtla() : self.oncekiSarki(bastanAl: false)
             return .success
         }
         komutlariTureGoreAyarla()
