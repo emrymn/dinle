@@ -10,6 +10,12 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<!-- Uygulamanın "Belgeler" klasörü Finder'da (iPhone → Dosyalar) ve Dosyalar uygulamasında
+	     ("iPhone'umda → Podcast") görünür: Mac'ten kabloyla dosya atılabilir. -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

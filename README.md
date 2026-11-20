@@ -21,6 +21,22 @@ Kendi podcast ve müzik uygulamam. Telefonda **Podcast** adıyla görünür (pro
 - **Hız:** 0,8× – 2,5×.
 - **Uyku zamanlayıcısı:** Oynatıcıdaki ay simgesinden 5–90 dakika ya da "bölüm/şarkı bitince" seçilir. Son saniyelerde ses yavaşça kısılır, sonra durur ve yerini kaydeder. Kalan süre oynatıcıda ve mini oynatıcıda görünür.
 
+## Elindeki dosyaları aktarma
+
+**iPhone'da Dosyalar'da ya da iCloud Drive'da duruyorsa:**
+1. **Podcastler → + → Yeni program (dosyalardan)** ile programa bir ad ver.
+2. Programın sayfasında sağ üstteki **⋯ → Klasör seç**'e bas ve bölümlerin durduğu klasörü seç. Alt klasörler de taranır.
+3. Bölümler yayın tarihine göre dizilir. Aynı dosyayı tekrar seçersen tekrar eklenmez.
+
+**Mac'te bir klasörde duruyorsa (kabloyla, iCloud gerekmez):**
+1. iPhone'u kabloyla bağla. Finder'ın sol tarafında iPhone'una tıkla, sonra üstteki **Dosyalar** sekmesini aç.
+2. Listede **Podcast** uygulamasını bul. Mac'teki klasörü sürükleyip onun üstüne bırak.
+3. iPhone'da Podcast uygulamasında programı aç ve **⋯ → Klasör seç**'e bas. **iPhone'umda → Podcast** altındaki klasörü seç. Dosyalar uygulamanın içine taşınır, yer iki kez dolmaz.
+
+Başka yollar: Mac'te klasörü **iCloud Drive**'a sürükleyebilir ya da **AirDrop** ile gönderebilirsin (iPhone'da Dosyalar → İndirilenler'e gelir). Sonra yukarıdaki iPhone adımlarını uygula.
+
+Bu bölümler bir Substack yayınına aitse, programın menüsünden **Substack / RSS bağla**'yı da kullan. Dosyalar akıştaki bölümlerle eşleşir, yeni bölümler de kendiliğinden gelir.
+
 ## Mac'te ilk kurulum (bir kere)
 
 1. Xcode 16 veya daha yenisi kurulu olsun.

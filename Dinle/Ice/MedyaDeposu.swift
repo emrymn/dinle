@@ -22,11 +22,23 @@ enum MedyaDeposu {
         try? FileManager.default.removeItem(at: url(ad))
     }
 
-    /// Dosyayı klasöre benzersiz bir adla kopyalar, yeni adı döndürür.
+    /// Uygulamanın Finder/Dosyalar'da görünen "Belgeler" klasörü (Mac'ten kabloyla atılan dosyalar buraya gelir).
+    static var belgeler: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+
+    /// Dosyayı klasöre benzersiz bir adla alır, yeni adı döndürür.
+    /// Kaynak uygulamanın kendi Belgeler klasöründeyse kopyalamak yerine taşır (yer iki kez dolmasın).
     static func kopyala(_ kaynak: URL) throws -> String {
         let uzanti = kaynak.pathExtension.isEmpty ? "m4a" : kaynak.pathExtension.lowercased()
         let ad = UUID().uuidString + "." + uzanti
-        try FileManager.default.copyItem(at: kaynak, to: url(ad))
+        let belgelerYolu = belgeler.standardizedFileURL.resolvingSymlinksInPath().path
+        let kaynakYolu = kaynak.standardizedFileURL.resolvingSymlinksInPath().path
+        if kaynakYolu.hasPrefix(belgelerYolu + "/") {
+            try FileManager.default.moveItem(at: kaynak, to: url(ad))
+        } else {
+            try FileManager.default.copyItem(at: kaynak, to: url(ad))
+        }
         return ad
     }
 
