@@ -41,7 +41,9 @@ struct AkisEkleEkrani: View {
 
                 if let program {
                     Section {
-                        Text("Akıştaki bölümler “\(program.ad)” programındaki dosyalarla başlık ve süreye göre eşleştirilir; aynı bölüm iki kez görünmez.")
+                        Text(program.akisAdresi == nil
+                             ? "Akıştaki bölümler “\(program.ad)” programındaki dosyalarla başlık ve süreye göre eşleştirilir; aynı bölüm iki kez görünmez."
+                             : "Özel linki yapıştırınca önizlemeler tam bölümlerle değişir. Önizlemelerin indirilmiş dosyaları silinir; kaldığın yerler ve “Bitti” işaretleri bölüm başına sıfırlanır.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }

@@ -46,3 +46,26 @@ final class AkisEslestiriciTests: XCTestCase {
         XCTAssertEqual(AkisEslestirici.eslestir(mevcut: mevcut, yeni: yeni), [nil, 0])
     }
 }
+
+final class SesYenilendiTests: XCTestCase {
+    func testOnizlemedenTamaGecis() {
+        // Özel link: farklı ses adresi
+        XCTAssertTrue(AkisEslestirici.sesYenilendi(eskiAdres: "https://a/onizleme.mp3", yeniAdres: "https://a/tam.mp3",
+                                                   eskiSure: 120, yeniSure: 3600, arsivDosyasi: false))
+        // Aynı adres ama süre çok uzadı
+        XCTAssertTrue(AkisEslestirici.sesYenilendi(eskiAdres: "https://a/x.mp3", yeniAdres: "https://a/x.mp3",
+                                                   eskiSure: 120, yeniSure: 3600, arsivDosyasi: false))
+        // Adres değişti ama süre aynı (sunucu adresi yeniledi): ilerleme korunmalı
+        XCTAssertFalse(AkisEslestirici.sesYenilendi(eskiAdres: "https://a/x.mp3?t=1", yeniAdres: "https://a/x.mp3?t=2",
+                                                    eskiSure: 3600, yeniSure: 3600, arsivDosyasi: false))
+        // Değişiklik yok
+        XCTAssertFalse(AkisEslestirici.sesYenilendi(eskiAdres: "https://a/x.mp3", yeniAdres: "https://a/x.mp3",
+                                                    eskiSure: 3600, yeniSure: 3601, arsivDosyasi: false))
+        // İlk kez geliyor
+        XCTAssertFalse(AkisEslestirici.sesYenilendi(eskiAdres: nil, yeniAdres: "https://a/x.mp3",
+                                                    eskiSure: 0, yeniSure: 3600, arsivDosyasi: false))
+        // Arşiv dosyasına dokunma
+        XCTAssertFalse(AkisEslestirici.sesYenilendi(eskiAdres: "https://a/o.mp3", yeniAdres: "https://a/t.mp3",
+                                                    eskiSure: 120, yeniSure: 3600, arsivDosyasi: true))
+    }
+}

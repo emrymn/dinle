@@ -207,7 +207,7 @@ struct ProgramDetay: View {
                             Label("Şimdi yenile", systemImage: "arrow.clockwise")
                         }
                         Button { akisBagla = true } label: {
-                            Label("Akış linkini değiştir", systemImage: "link")
+                            Label("Özel linkle değiştir (ücretli abonelik)", systemImage: "key")
                         }
                     }
                 }
