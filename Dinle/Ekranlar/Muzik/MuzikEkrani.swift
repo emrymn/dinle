@@ -31,24 +31,20 @@ struct MuzikEkrani: View {
                              aciklama: "Sağ üstteki + ile şarkı ya da bir albüm klasörü ekle. Klasör seçersen içindekiler tek seferde bir albüm olur.")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if gorunum == .albumler {
-                    AlbumIzgarasi(albumler: Album.grupla(tumu))
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            gorunumSecici
+                                .padding(.horizontal, 20)
+                            AlbumIzgarasi(albumler: Album.grupla(tumu))
+                        }
+                        .padding(.top, 4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 } else {
                     sarkiListesi
                 }
             }
             .background(Tema.zemin)
-            .safeAreaInset(edge: .top, spacing: 0) {
-                if !tumu.isEmpty {
-                    Picker("Görünüm", selection: $gorunum) {
-                        Text("Albümler").tag(Gorunum.albumler)
-                        Text("Şarkılar").tag(Gorunum.sarkilar)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(Tema.zemin)
-                }
-            }
             .overlay {
                 if ekleniyor {
                     ProgressView("Ekleniyor…")
@@ -98,9 +94,22 @@ struct MuzikEkrani: View {
         }
     }
 
+    /// Albümler / Şarkılar seçimi; başlığın altında, içerikle birlikte kayar.
+    private var gorunumSecici: some View {
+        Picker("Görünüm", selection: $gorunum) {
+            Text("Albümler").tag(Gorunum.albumler)
+            Text("Şarkılar").tag(Gorunum.sarkilar)
+        }
+        .pickerStyle(.segmented)
+    }
+
     private var sarkiListesi: some View {
         let liste = sarkilar
         return List {
+            gorunumSecici
+                .listRowSeparator(.hidden)
+                .duzSatir()
+
             CalKarisikDugmeleri(sarkilar: liste)
                 .listRowSeparator(.hidden)
                 .duzSatir()
@@ -221,9 +230,8 @@ struct AlbumIzgarasi: View {
     private let sutunlar = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: sutunlar, alignment: .leading, spacing: 22) {
-                ForEach(albumler) { a in
+        LazyVGrid(columns: sutunlar, alignment: .leading, spacing: 22) {
+            ForEach(albumler) { a in
                     NavigationLink(value: a.anahtar) {
                         VStack(alignment: .leading, spacing: 6) {
                             AlbumKapagi(veri: a.kapak)
@@ -239,11 +247,9 @@ struct AlbumIzgarasi: View {
                     }
                     .buttonStyle(.plain)
                 }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 12)
     }
 }
 
