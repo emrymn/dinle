@@ -8,6 +8,12 @@ enum CalmaTuru {
     case podcast, muzik
 }
 
+/// Uyku zamanlayıcısı: belli bir saatte ya da çalan bölüm/şarkı bitince durdurur.
+enum UykuModu: Equatable {
+    case sure(bitis: Date)
+    case parcaSonu
+}
+
 enum TekrarModu: CaseIterable {
     case kapali, hepsi, tek
 
@@ -47,6 +53,7 @@ final class Oynatici {
     private(set) var siraIndeksi = 0
     private(set) var karisik = false
     var tekrar: TekrarModu = .kapali
+    private(set) var uyku: UykuModu?
     var hata: String?
 
     var tur: CalmaTuru? {
@@ -231,6 +238,8 @@ final class Oynatici {
             if geri > 0 { atla(konuma: max(0, konum - geri)) }
         }
         duraklatmaAni = nil
+        // Duraklatılmışken süresi dolan zamanlayıcı, yeniden oynatınca hemen durdurmasın.
+        if let kalan = uykuKalan, kalan <= 0 { uykuIptal() }
 
         player.defaultRate = tur == .podcast ? hiz : 1
         caliyor = true
@@ -289,6 +298,47 @@ final class Oynatici {
         konum = 0
         sure = 0
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+
+    // MARK: Uyku zamanlayıcısı
+
+    static let uykuSecenekleri = [5, 10, 15, 30, 45, 60, 90]
+    /// Son bu kadar saniyede ses yavaşça kısılır.
+    private static let kismaSuresi: TimeInterval = 12
+
+    func uykuKur(dakika: Int) {
+        uyku = .sure(bitis: Date().addingTimeInterval(TimeInterval(dakika * 60)))
+        player.volume = 1
+    }
+
+    func uykuParcaSonunda() {
+        uyku = .parcaSonu
+        player.volume = 1
+    }
+
+    func uykuIptal() {
+        uyku = nil
+        player.volume = 1
+    }
+
+    /// Kalan süre (saniye); süreli zamanlayıcı yoksa nil.
+    var uykuKalan: TimeInterval? {
+        guard case .sure(let bitis) = uyku else { return nil }
+        return max(0, bitis.timeIntervalSinceNow)
+    }
+
+    /// Çalarken her saniye çağrılır: sona yaklaşınca sesi kısar, süre dolunca durdurur.
+    private func uykuyuDenetle() {
+        guard let kalan = uykuKalan else { return }
+        if kalan <= 0 {
+            uyku = nil
+            duraklat()
+            player.volume = 1
+        } else if kalan < Oynatici.kismaSuresi {
+            player.volume = Float(kalan / Oynatici.kismaSuresi)
+        } else if player.volume < 1 {
+            player.volume = 1
+        }
     }
 
     // MARK: Kaydetme
@@ -386,12 +436,16 @@ final class Oynatici {
     }
 
     private func ogeBitti() {
+        // "Bölüm/şarkı sonunda" zamanlayıcısı: sıradakine geçmeden dur.
+        let uykuVakti = uyku == .parcaSonu
+        if uykuVakti { uyku = nil }
+
         if let b = bolum {
             b.bitti = true
             b.konum = 0
             b.sonDinlenme = Date()
             try? baglam.save()
-            if Ayarlar.sonrakiniCal, let sonraki = sonrakiBolum(b) {
+            if !uykuVakti, Ayarlar.sonrakiniCal, let sonraki = sonrakiBolum(b) {
                 cal(sonraki, bastan: false, sira: podcastSirasi)
             } else {
                 caliyor = false
@@ -400,7 +454,11 @@ final class Oynatici {
                 simdiCaliyorBilgisiniGuncelle()
             }
         } else if sarki != nil {
-            if tekrar == .tek {
+            if uykuVakti {
+                caliyor = false
+                atla(konuma: 0)
+                konumuKaydet()
+            } else if tekrar == .tek {
                 atla(konuma: 0)
                 player.play()
             } else {
@@ -464,6 +522,7 @@ final class Oynatici {
         guard s.isFinite, bekleyenKonum == nil, player.timeControlStatus == .playing else { return }
         konum = s
         if Date().timeIntervalSince(sonKayit) >= 5 { konumuKaydet() }
+        uykuyuDenetle()
     }
 
     /// Sistem dışarıdan durdurduysa (kulaklık çıktı, başka uygulama sesi aldı) durumu eşitle.

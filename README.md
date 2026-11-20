@@ -17,6 +17,7 @@ Kendi podcast ve müzik uygulamam. Telefonda **Podcast** adıyla görünür (pro
   - Podcastte iki kez dokunmak ileri, üç kez dokunmak geri atlar. Müzikte iki kez dokunmak sonraki şarkıya, üç kez dokunmak önceki şarkıya geçer.
   - Kulaktan çıkarınca ses durur ve yer kaydedilir.
 - **Hız:** 0,8× – 2,5×.
+- **Uyku zamanlayıcısı:** Oynatıcıdaki ay simgesinden 5–90 dakika ya da "bölüm/şarkı bitince" seçilir. Son saniyelerde ses yavaşça kısılır, sonra durur ve yerini kaydeder. Kalan süre oynatıcıda ve mini oynatıcıda görünür.
 
 ## Mac'te ilk kurulum (bir kere)
 
@@ -67,6 +68,8 @@ Sonra Xcode'da **▶**. Bu kadar.
 - [ ] Bir klasör aç, farklı programlardan bölüm ekle, klasörden çal. Bölüm bitince klasördeki sıradaki çalmalı.
 - [ ] Müzik'e bir albüm klasörü ekle. **Albümler**'de tek kart olarak görünmeli.
 - [ ] Müzik çalarken AirPods'a üç kez dokun. Önceki şarkıya geçmeli (şarkının başına dönmemeli).
+- [ ] Uyku zamanlayıcısını 5 dk'ya kur, ekranı kilitle. Ses yavaşça kısılıp durmalı. Tekrar oynatınca kaldığı yerden (birkaç sn geri) devam etmeli.
+- [ ] "Bölüm bitince" seç. Bölüm bitince sıradakine geçmeden durmalı.
 - [ ] Ana Sayfa boşken içerik ekranın iki yanına kadar uzanmalı, yanlarda siyah şerit olmamalı.
 
 ## Geliştirme
@@ -94,7 +97,7 @@ swift test --package-path Paketler/DinleCekirdek
 ## Yol haritası
 
 1. ~~İskelet: arka planda çalma, kaldığın yerden devam, dosya ekleme, tasarım~~
-2. ~~Bölüm klasörleri, müzik albümleri, kopya önleme, AirPods'la şarkı değiştirme~~ **← şu an**
+2. ~~Bölüm klasörleri, müzik albümleri, kopya önleme, AirPods'la şarkı değiştirme, uyku zamanlayıcısı~~ **← şu an**
 3. RSS / Substack akışları: link yapıştırarak abone ol, bölümleri indir, dosya + akış birleştirme
 4. AirPods: takınca devam, baş hareketleri, uyku zamanlayıcısı ve uyku algılama
 5. Siri ile devam, Substack girişiyle abonelikleri otomatik çekme, ses iyileştirme, yedekleme
